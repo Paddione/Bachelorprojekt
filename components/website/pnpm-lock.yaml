@@ -35,13 +35,13 @@ importers:
         version: 0.9.12(@emnapi/runtime@1.11.3)(prettier@3.9.6)(typescript@6.0.3)
       '@astrojs/node':
         specifier: ^11.1.12
-        version: 11.1.12(astro@7.4.10(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+        version: 11.1.12(astro@7.4.11(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
       '@astrojs/react':
-        specifier: ^7.1.7
-        version: 7.1.7(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vite@8.3.7(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+        specifier: ^7.1.8
+        version: 7.1.8(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vite@8.3.7(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
       '@astrojs/svelte':
-        specifier: ^9.1.4
-        version: 9.1.4(@types/node@26.1.2)(astro@7.4.10(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(esbuild@0.28.1)(jiti@2.7.0)(svelte@5.57.3(@typescript-eslint/types@8.71.2))(tsx@4.23.15)(typescript@6.0.3)(yaml@2.9.1)
+        specifier: ^9.1.5
+        version: 9.1.5(@types/node@26.1.2)(astro@7.4.11(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(esbuild@0.28.1)(jiti@2.7.0)(svelte@5.57.3(@typescript-eslint/types@8.71.2))(tsx@4.23.15)(typescript@6.0.3)(yaml@2.9.1)
       '@mistralai/mistralai':
         specifier: ^3.5.0
         version: 3.5.0(@opentelemetry/api@1.10.0)
@@ -61,8 +61,8 @@ importers:
         specifier: ^19.3.0
         version: 19.3.0(@types/react@19.3.0)
       astro:
-        specifier: ^7.4.10
-        version: 7.4.10(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
+        specifier: ^7.4.11
+        version: 7.4.11(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
       chart.js:
         specifier: ^4.6.1
         version: 4.6.1
@@ -371,8 +371,8 @@ packages:
       prettier-plugin-astro:
         optional: true
 
-  '@astrojs/markdown-satteri@0.4.8':
-    resolution: {integrity: sha512-IKAfvJGJ/RhXzvRkZ89kXp5woRTlRm0LVqhu8HOZAW3FAdWyZY9fYKcoVc472CJAsq8JjJjQzRkW6uaUkyufSw==}
+  '@astrojs/markdown-satteri@0.4.9':
+    resolution: {integrity: sha512-ixhXGrlvYNdVvSLU3L+ju+tGoMbRdH1iXee593xReVAcDhXJ7yvuNIV8M0KzCQAeiZo1VIleaaI9lH4RzCKYWA==}
 
   '@astrojs/node@11.1.12':
     resolution: {integrity: sha512-DCvbBBzkviLxJGLzS+zh/9zhswM3j7IiYBpHym9pkc9cA3ZnDBcA0Te5xCedUZ7K1Suar1BTOI3aElkgw1YIkQ==}
@@ -383,16 +383,16 @@ packages:
     resolution: {integrity: sha512-jMrUEpFDarDO1KWPvVc9eSa8DSfwBlwEOHwX+8zvZQpiqXRGDxFnOXHsYqV6DP7w+0qIgTr98gS1GdQlm8ypWg==}
     engines: {node: '>=22.23.4'}
 
-  '@astrojs/react-renderer@0.1.1':
-    resolution: {integrity: sha512-sli66MO5V1JdiuOS8xSLsGjh4z5t79KPCFeHm3yRYhu0oUo7iRkF79qBX7Fg7RUfMiIGclotfrFTWRFUogPjvg==}
+  '@astrojs/react-renderer@0.1.2':
+    resolution: {integrity: sha512-kUjPOSFMbYvoppBWgiiLzKF7/RbxdY8Y2kGtEyhGt5qW2Az5SDGAmdPbTtv995XvUKdG/i0TsBdZ2VBlgmW+IQ==}
     peerDependencies:
       '@types/react': ^17.0.50 || ^18.0.21 || ^19.0.0
       '@types/react-dom': ^17.0.17 || ^18.0.6 || ^19.0.0
       react: ^17.0.2 || ^18.0.0 || ^19.0.0
       react-dom: ^17.0.2 || ^18.0.0 || ^19.0.0
 
-  '@astrojs/react@7.1.7':
-    resolution: {integrity: sha512-yzrAGboj/gWpiq86Gov0kTwkf/QJaPgPr9o+1VAwFbY4n1PnzTBjRHRvCj9uIh2NcQI4QnKoPvUaU+Ba3KDUZg==}
+  '@astrojs/react@7.1.8':
+    resolution: {integrity: sha512-mPH73zZOLRBLPRNKAPjISiOE3DbUR6Dk1o7DVmAxozEFSU/USvF6WXA02EqkTezN47uQPVzTTkT9cSmg0E39/g==}
     engines: {node: '>=22.23.4'}
     peerDependencies:
       '@types/react': ^17.0.50 || ^18.0.21 || ^19.0.0
@@ -404,16 +404,16 @@ packages:
       oxc-transform-react:
         optional: true
 
-  '@astrojs/runtime@0.1.0':
-    resolution: {integrity: sha512-Ips60LS4g0jEwOq7qOZqBhVl/6/nUDsk83bFbPBDYwtSfIiknaN48aSD+ycnwhBpUvbxQMQHv1ZotrCJFsJzPw==}
+  '@astrojs/runtime@0.1.1':
+    resolution: {integrity: sha512-2Tr9IJ4aQBPDFzlSLq139eWS9OZnuhL0yU2al8cCpnTE/RszygSyGIP8piBmEio1zDUaItb/+YxxsrmldUCBmg==}
 
-  '@astrojs/svelte-renderer@0.1.0':
-    resolution: {integrity: sha512-A9VIdjRVSTDPOl/fsJf6+Nc8P8WSAuU6IyRKje6FlMPKx6sezoyE8IZ5/BIt167eje/yGF//pM1+HrIVoYTv5w==}
+  '@astrojs/svelte-renderer@0.1.1':
+    resolution: {integrity: sha512-8jGP/l0/Ql9UYM37lf5fm/9Ir+bz/PDQDpteuQup+6+oBHOBhhY3jrbjLENl4e+Emac5rUocL1PFinhZCrFdXA==}
     peerDependencies:
       svelte: ^5.43.6
 
-  '@astrojs/svelte@9.1.4':
-    resolution: {integrity: sha512-tjK5loWRNXt/lIE/DKbXbG3QS5GhiaWzicQK5HJynPqMjUDVS70paR1UZMC2BM53PbbhTKkcirZPFSbvNW39ag==}
+  '@astrojs/svelte@9.1.5':
+    resolution: {integrity: sha512-mRyI7RNOjmfsLKFp4f1SoUD7Z718tzLSsgriCCYcXmeXrQAmVcSro+3EdRO8b7Ixj57pDKyrOsNBWaMB+lKp+g==}
     engines: {node: '>=22.23.4'}
     peerDependencies:
       astro: ^7.0.0
@@ -424,8 +424,8 @@ packages:
     resolution: {integrity: sha512-2JOMRUxJrBSfiVDfeKLv1wBmvSIx1Y6u2YEO8awZ9qSq3u/rNAiUyFdOYi8dHv91kHrmYEQX7pRDw0J4xyj3UA==}
     engines: {node: '>=22.23.4'}
 
-  '@astrojs/vite-plugin-astro@0.1.1':
-    resolution: {integrity: sha512-JiRu3n9jWRFwSuarVKFYFQEqxAuy+k5Hqyr0IMmafjpd75tiPyQ4W9MTSrnjsqNs0SYcS6vGNXZ5CTwrXNSglQ==}
+  '@astrojs/vite-plugin-astro@0.1.2':
+    resolution: {integrity: sha512-tDlT8Gp6fX3Km7yGeZSG1xaPfVhcXgmYHp/lKcXf3Rc3fZF4NTeWMwtXVbJy40lvrD7iDxpXN7vAHH2tQSZGWg==}
     peerDependencies:
       vite: ^8.3.3
 
@@ -2149,8 +2149,8 @@ packages:
     resolution: {integrity: sha512-idgbHE8cjEU9f4Ne46RiGgwEviXYarNVoQoTZr+H1j7mbNCKp8EGGov2bR64/cvMpfBsX3XNPu9+muxAhK84eg==}
     engines: {node: ^22.22.3 || ^24.16.0 || >=26.3.0}
 
-  astro@7.4.10:
-    resolution: {integrity: sha512-NQfkQCCGZz3pzUy04tN3iRehKZq0S+FcjnrBwLTmVNZC6+BUAzMYxmdzLpf6Dovb6zVjMQJeMziKI4hjX3BQlw==}
+  astro@7.4.11:
+    resolution: {integrity: sha512-c8gibLFCnzuXCXqsvTiMXbjCnuIjxGhWw6TO5n11cXzNrw36P3ZgBzsOoRUR4raG1r6cKWeE5oXQu4F3GCBofg==}
     engines: {node: '>=22.23.4', npm: '>=9.6.5', pnpm: '>=7.1.0'}
     hasBin: true
     peerDependencies:
@@ -4896,17 +4896,17 @@ snapshots:
       - '@emnapi/runtime'
       - typescript
 
-  '@astrojs/markdown-satteri@0.4.8':
+  '@astrojs/markdown-satteri@0.4.9':
     dependencies:
       '@astrojs/internal-helpers': 0.13.2
       '@astrojs/prism': 4.1.2
       github-slugger: 2.0.0
       satteri: 0.11.6
 
-  '@astrojs/node@11.1.12(astro@7.4.10(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))':
+  '@astrojs/node@11.1.12(astro@7.4.11(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))':
     dependencies:
       '@astrojs/internal-helpers': 0.13.2
-      astro: 7.4.10(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
+      astro: 7.4.11(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
       send: 1.2.1
       server-destroy: 1.0.1
     transitivePeerDependencies:
@@ -4916,10 +4916,10 @@ snapshots:
     dependencies:
       prismjs: 1.30.0
 
-  '@astrojs/react-renderer@0.1.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vite@8.3.7(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))':
+  '@astrojs/react-renderer@0.1.2(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vite@8.3.7(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))':
     dependencies:
       '@astrojs/internal-helpers': 0.13.2
-      '@astrojs/runtime': 0.1.0
+      '@astrojs/runtime': 0.1.1
       '@types/react': 19.3.0
       '@types/react-dom': 19.3.0(@types/react@19.3.0)
       '@vitejs/plugin-react': 6.3.0(vite@8.3.7(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
@@ -4932,10 +4932,10 @@ snapshots:
       - oxc-transform-react
       - vite
 
-  '@astrojs/react@7.1.7(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vite@8.3.7(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))':
+  '@astrojs/react@7.1.8(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vite@8.3.7(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))':
     dependencies:
       '@astrojs/internal-helpers': 0.13.2
-      '@astrojs/react-renderer': 0.1.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vite@8.3.7(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+      '@astrojs/react-renderer': 0.1.2(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vite@8.3.7(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
       '@types/react': 19.3.0
       '@types/react-dom': 19.3.0(@types/react@19.3.0)
       '@vitejs/plugin-react': 6.3.0(vite@8.3.7(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
@@ -4946,25 +4946,25 @@ snapshots:
       - babel-plugin-react-compiler
       - vite
 
-  '@astrojs/runtime@0.1.0':
+  '@astrojs/runtime@0.1.1':
     dependencies:
       '@oslojs/encoding': 1.1.0
       clsx: 2.1.1
 
-  '@astrojs/svelte-renderer@0.1.0(svelte@5.57.3(@typescript-eslint/types@8.71.2))(vite@8.3.7(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))':
+  '@astrojs/svelte-renderer@0.1.1(svelte@5.57.3(@typescript-eslint/types@8.71.2))(vite@8.3.7(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))':
     dependencies:
-      '@astrojs/runtime': 0.1.0
+      '@astrojs/runtime': 0.1.1
       svelte: 5.57.3(@typescript-eslint/types@8.71.2)
       vitefu: 1.1.3(vite@8.3.7(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
     transitivePeerDependencies:
       - vite
 
-  '@astrojs/svelte@9.1.4(@types/node@26.1.2)(astro@7.4.10(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(esbuild@0.28.1)(jiti@2.7.0)(svelte@5.57.3(@typescript-eslint/types@8.71.2))(tsx@4.23.15)(typescript@6.0.3)(yaml@2.9.1)':
+  '@astrojs/svelte@9.1.5(@types/node@26.1.2)(astro@7.4.11(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(esbuild@0.28.1)(jiti@2.7.0)(svelte@5.57.3(@typescript-eslint/types@8.71.2))(tsx@4.23.15)(typescript@6.0.3)(yaml@2.9.1)':
     dependencies:
       '@astrojs/internal-helpers': 0.13.2
-      '@astrojs/svelte-renderer': 0.1.0(svelte@5.57.3(@typescript-eslint/types@8.71.2))(vite@8.3.7(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+      '@astrojs/svelte-renderer': 0.1.1(svelte@5.57.3(@typescript-eslint/types@8.71.2))(vite@8.3.7(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
       '@sveltejs/vite-plugin-svelte': 7.3.1(svelte@5.57.3(@typescript-eslint/types@8.71.2))(vite@8.3.7(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
-      astro: 7.4.10(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
+      astro: 7.4.11(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
       svelte: 5.57.3(@typescript-eslint/types@8.71.2)
       svelte2tsx: 0.7.63(svelte@5.57.3(@typescript-eslint/types@8.71.2))(typescript@6.0.3)
       typescript: 6.0.3
@@ -4990,11 +4990,11 @@ snapshots:
       is-docker: 4.0.0
       package-manager-detector: 1.9.0
 
-  '@astrojs/vite-plugin-astro@0.1.1(vite@8.3.7(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))':
+  '@astrojs/vite-plugin-astro@0.1.2(vite@8.3.7(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))':
     dependencies:
       '@astrojs/compiler-rs': 0.5.2
       '@astrojs/internal-helpers': 0.13.2
-      '@astrojs/runtime': 0.1.0
+      '@astrojs/runtime': 0.1.1
       common-ancestor-path: 2.0.0
       devalue: 5.9.4
       magic-string: 1.4.5
@@ -6378,14 +6378,14 @@ snapshots:
       - '@emnapi/runtime'
       - supports-color
 
-  astro@7.4.10(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1):
+  astro@7.4.11(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1):
     dependencies:
       '@astrojs/compiler-rs': 0.5.2
       '@astrojs/internal-helpers': 0.13.2
-      '@astrojs/markdown-satteri': 0.4.8
-      '@astrojs/runtime': 0.1.0
+      '@astrojs/markdown-satteri': 0.4.9
+      '@astrojs/runtime': 0.1.1
       '@astrojs/telemetry': 3.4.2
-      '@astrojs/vite-plugin-astro': 0.1.1(vite@8.3.7(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+      '@astrojs/vite-plugin-astro': 0.1.2(vite@8.3.7(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
       '@capsizecss/unpack': 4.0.1
       '@clack/prompts': 1.8.1
       '@oslojs/encoding': 1.1.0

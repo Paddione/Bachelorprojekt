@@ -215,6 +215,12 @@ def test_output_duration_ms_is_a_number(assert_lib):
     assert re.fullmatch(r"[0-9]+", str(dur)), f"duration_ms not numeric: {dur!r}"
 
 
+def test_output_duration_ms_clamps_clock_step_backward(assert_lib):
+    run, results = assert_lib
+    run("_log_result 'TEST' 'T1' 'clock step' 'pass' '-326' ''").check()
+    assert _last(results)["duration_ms"] == 0
+
+
 # ── assert_summary ───────────────────────────────────────────────
 
 

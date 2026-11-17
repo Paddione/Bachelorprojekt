@@ -507,3 +507,38 @@ def test_t900996_status_db_changed_reports_unknown_with_refresh_allowed_re_basel
     assert _jq_e('.reasons | index("db-changed")', cbm.output)
     assert _jq_e('.receipt == null', cbm.output)
     assert _jq_e('.refresh_allowed == true', cbm.output)
+
+
+def test_failed_and_stale_in_progress_attempts_allow_cron_recovery(cbm):
+    cbm.fixture()
+    cbm.wrap(cbm.root)
+    assert cbm.status == 0
+    cbm.env["STUB_MODE"] = "fail-index"
+    cbm.wrap(cbm.root)
+    assert cbm.status != 0
+    cbm.env["STUB_MODE"] = "ok"
+    cbm.helper_status()
+    assert _jq_e('.status == "unknown"', cbm.output)
+    assert _jq_e('.reasons | index("attempt-failed")', cbm.output)
+    assert _jq_e('.refresh_allowed == true', cbm.output)
+
+    cache = Path(cbm.env["TEST_HOME"]) / ".cache" / "codebase-memory-mcp"
+    attempts = sorted(glob.glob(str(cache / "cbm-attempt-*.json")))
+    assert len(attempts) == 1
+    data = json.loads(Path(attempts[0]).read_text())
+    data["state"] = "in_progress"
+    data["timestamp"] = "2099-01-01T00:00:00Z"
+    Path(attempts[0]).write_text(json.dumps(data))
+    cbm.helper_status()
+    assert _jq_e('.reasons | index("attempt-in-progress")', cbm.output)
+    assert _jq_e('.refresh_allowed == false', cbm.output)
+
+    receipts = sorted(glob.glob(str(cache / "cbm-receipt-*.json")))
+    rts = json.loads(Path(receipts[0]).read_text())["timestamp"]
+    data["timestamp"] = rts
+    Path(attempts[0]).write_text(json.dumps(data))
+    cbm.env["CBM_STALE_ATTEMPT_SECONDS"] = "0"
+    cbm.helper_status()
+    assert _jq_e('.status == "unknown"', cbm.output)
+    assert _jq_e('.reasons | index("attempt-in-progress-stale")', cbm.output)
+    assert _jq_e('.refresh_allowed == true', cbm.output)

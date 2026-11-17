@@ -64,8 +64,17 @@ def test_manifest_sorted_and_duplicates_consistent(repo_root: Path):
             assert by_id[member] == group["sha256"], f"hash mismatch for {member}"
 
 
+def _strip_host_mime(manifest: dict) -> str:
+    """Drop OS-libmagic-dependent mime before comparing deterministic inventory fields."""
+    normalized = {
+        **manifest,
+        "files": [{**entry, "mime": ""} for entry in manifest.get("files", [])],
+    }
+    return json.dumps(normalized, indent=2, sort_keys=True, ensure_ascii=True) + "\n"
+
+
 def test_inventory_reproducible(repo_root: Path, tmp_path: Path):
-    """Re-running the inventory command reproduces the committed manifest byte-identically."""
+    """Re-running the inventory command reproduces all deterministic manifest fields."""
     script = repo_root / "scripts" / "design-assets-inventory.sh"
     assert script.is_file(), f"MISSING script: {script}"
     manifest = repo_root / "docs" / "design-assets" / "manifest.json"
@@ -80,9 +89,13 @@ def test_inventory_reproducible(repo_root: Path, tmp_path: Path):
     )
     assert res.returncode == 0, f"inventory command failed: {res.stderr}"
     assert rerun.is_file(), "inventory command produced no output file"
-    committed = hashlib.sha256(manifest.read_bytes()).hexdigest()
-    regenerated = hashlib.sha256(rerun.read_bytes()).hexdigest()
-    assert regenerated == committed, "re-run manifest bytes differ from committed baseline"
+    committed_data = json.loads(manifest.read_text(encoding="utf-8"))
+    regenerated_data = json.loads(rerun.read_text(encoding="utf-8"))
+    for entry in regenerated_data.get("files", []):
+        assert isinstance(entry.get("mime"), str) and "/" in entry["mime"], f"bad mime: {entry!r}"
+    committed = hashlib.sha256(_strip_host_mime(committed_data).encode("utf-8")).hexdigest()
+    regenerated = hashlib.sha256(_strip_host_mime(regenerated_data).encode("utf-8")).hexdigest()
+    assert regenerated == committed, "re-run manifest deterministic fields differ from committed baseline"
 
 
 def test_manifest_hygiene_no_absolute_or_secret_paths(repo_root: Path):

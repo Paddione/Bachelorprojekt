@@ -18,3 +18,7 @@ land: pr-squash
 deps:
   - path: node_modules
     kind: symlink
+  - path: components/website/node_modules
+    kind: symlink
+  - path: components/studio-server/node_modules
+    kind: symlink

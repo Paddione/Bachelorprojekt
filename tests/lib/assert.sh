@@ -23,6 +23,9 @@ _log_result() {
   local req="$1" test_id="$2" desc="$3" status="$4" duration_ms="$5" detail="${6:-}"
 
   [[ -n "${RESULTS_FILE:-}" ]] || { echo "ERROR: RESULTS_FILE is not set" >&2; return 1; }
+  if [[ "$duration_ms" =~ ^-?[0-9]+$ ]] && (( duration_ms < 0 )); then
+    duration_ms=0
+  fi
 
   # Derive category from the req prefix (FA-*, SA-*, NFA-*, AK-*, *.bats|*-bats → BATS).
   # Used by the dashboard's test_results ingestion (Phase B of the testing-pipeline overhaul).

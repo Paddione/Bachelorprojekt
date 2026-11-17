@@ -3,7 +3,7 @@
 Quantifizierbare Ziele für die strukturelle Gesundheit des Repos.
 Ein Ziel ohne reproduzierbaren Mess-Befehl ist kein Ziel, sondern ein Wunsch.
 
-**Baseline-Stichtag:** `2026-07-01` · **Zuletzt gemessen:** `2026-11-15` · **Dashboard:** Homepage-Section `#health`
+**Baseline-Stichtag:** `2026-07-01` · **Zuletzt gemessen:** `2026-11-17` · **Dashboard:** Homepage-Section `#health`
 
 > **`Zuletzt gemessen` ist das Messdatum des Dashboards** und wird von
 > `scripts/health-goals-update.sh` bei jedem Lauf gestempelt. Vor T002598 leitete
@@ -484,7 +484,7 @@ bash scripts/lib/manifest-drift-check.sh replicas
 bash scripts/lib/manifest-drift-check.sh probes
 ```
 
-> **B · Baseline:** 1 (2026-08-29, 1 Container ohne readinessProbe) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T005321
+> **B · Baseline:** 1 (2026-08-29, 1 Container ohne readinessProbe) → 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T005321
 
 ## G-DRIFT03 — SealedSecret-Decryption konsistent: 0 → 0
 
@@ -514,7 +514,7 @@ Pfad ist keine Verletzung, sondern eine nicht durchgeführte Messung.
 bash scripts/lib/wt-hygiene-measure.sh main-checkout
 ```
 
-> **B · Baseline:** 1 → 0 → 1 → 0 → 1 → 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** pro Session (lokal) · **Reproduzierbar:** nur lokal (CI hat keinen Hauptcheckout) · **Ticket:** T002443
+> **B · Baseline:** 0 → 1 → 0 → 1 → 0 → 1 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** pro Session (lokal) · **Reproduzierbar:** nur lokal (CI hat keinen Hauptcheckout) · **Ticket:** T002443
 
 ## G-WT02 — Veraltete Worktrees (Branch gemergt oder >14d inaktiv): 0 → 0
 
@@ -536,7 +536,7 @@ Negativbefund, den T002356-M1 verbietet.
 bash scripts/lib/wt-hygiene-measure.sh stale-worktrees
 ```
 
-> **B · Baseline:** 0 → 1 → 0 → 1 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich (lokal) · **Reproduzierbar:** nur lokal (CI hat keine Worktrees) · **Ticket:** T002443
+> **B · Baseline:** 0 → 1 → 0 → 1 → 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich (lokal) · **Reproduzierbar:** nur lokal (CI hat keine Worktrees) · **Ticket:** T002443
 
 ## G-WT03 — Verwaiste Agent-Locks (Heartbeat abgelaufen oder Halter nicht auffindbar): 0 → 0
 
@@ -594,7 +594,7 @@ auflösen, ist die Ausgabe `n/a`.
 bash scripts/lib/wt-hygiene-measure.sh unsafe-worktrees
 ```
 
-> **B · Baseline:** 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich (lokal) · **Reproduzierbar:** nur lokal (CI hat keine Worktrees) · **Ticket:** T002443
+> **B · Baseline:** 0 → 2 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich (lokal) · **Reproduzierbar:** nur lokal (CI hat keine Worktrees) · **Ticket:** T002443
 
 ## G-WT05 — Lokaler main hinter origin/main (Commits): 0 → 0
 
@@ -719,9 +719,9 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-CFG01** | env:validate:all grün | 0 ✓ | Exit 0 | `task env:validate:all` |
 | **G-SEC01** | Hardcoded Secrets (k3d) | 0 ✓ | 0 | `grep -rn 'password.*=.*[^$]' k3d/*.yaml \| grep -iv secretKeyRef \| wc -l` |
 | **G-SEC02** | git-crypt Guard | Exit 0 ✓ | Exit 0 | `bash scripts/git-crypt-guard.sh check-tracked` |
-| **G-SEC03** | SealedSecret-Rotation | 8 Tage ✓ | ≤ 90 Tage | `git log -1 --format='%at' -- environments/sealed-secrets/*.yaml \| ...` |
-| **G-SEC04** | Sealing-Cert Restlaufzeit | 3616 Tage ✓ | ≥ 30 Tage | `openssl x509 -enddate -noout -in environments/certs/*.pem` |
-| **G-SEC05** | Unsignierte Commits (adj.) | 6/50 ✓ | ≤ 12 | `git log -50 --pretty='%G? %ae' main \| grep -v freshness-bot \| grep -ciE 'github-actions\[bot\]|41898282\+github-actions\[bot\]'` — **gelockert:** Target auf ≤ 12 gesetzt, um bestehende unsignierte Commits im aktuellen Lauf abzudecken; beide Bot-Mail-Varianten werden korrekt gefiltert. |
+| **G-SEC03** | SealedSecret-Rotation | 11 Tage ✓ | ≤ 90 Tage | `git log -1 --format='%at' -- environments/sealed-secrets/*.yaml \| ...` |
+| **G-SEC04** | Sealing-Cert Restlaufzeit | 3614 Tage ✓ | ≥ 30 Tage | `openssl x509 -enddate -noout -in environments/certs/*.pem` |
+| **G-SEC05** | Unsignierte Commits (adj.) | 5/50 ✓ | ≤ 12 | `git log -50 --pretty='%G? %ae' main \| grep -v freshness-bot \| grep -ciE 'github-actions\[bot\]|41898282\+github-actions\[bot\]'` — **gelockert:** Target auf ≤ 12 gesetzt, um bestehende unsignierte Commits im aktuellen Lauf abzudecken; beide Bot-Mail-Varianten werden korrekt gefiltert. |
 | **G-E2E02** | E2E-Testdaten-Leak (is_test_data-Rows) | 0 ✓ | 0 | `SELECT COALESCE(sum(...), 0) FROM information_schema.columns WHERE column_name='is_test_data'` |
 | **G-SIZE02** | Großdateien >1000 Zeilen (Gate-Scope) | 0 ✓ | ≤ 3 | `git ls-files ... \| xargs wc -l \| awk '$1>1000' \| wc -l` |
 | **G-FLUX01** | Flux Reconciliation Health | 0 ✓ | 0 | `python3 scripts/lib/runtime-health-measure.py flux` (`HG_OPS_CTX`, Default `devmesh`; fleet 2026-10-22 abgebaut) — clusterweit, leer/fehlerhaft ⇒ n/a, absichtlich Suspendierte ausgenommen. CI ohne Live-Kubeconfig ⇒ n/a erwartet |
@@ -745,7 +745,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-CI01** | main CI-Erfolgsrate (letzte 20) | 100 % ✓ | ≥ 80 % | `gh-axi run list --workflow ci.yml --branch main --limit 20 \| grep -oE 'completed,(success\|failure\|cancelled)' \| sort \| uniq -c` (Target gelockert auf ≥ 80 %, letzte 15 Läufe 100 % grün) |
 | **G-CI02** | Rote main-HEAD-Läufe | 0 ✓ | 0 | `gh-axi run list --workflow ci.yml --branch main --limit 5 \| grep -c failure` |
 | **G-CD02** | post-merge.yml-Rate | 100 % ✓ | ≥ 95 % | `gh-axi run list --workflow post-merge.yml --branch main --limit 15 \| ...` |
-| **G-DORA01** | Deployment Frequency (main-Merges/4 Wo) | 493 ✓ | ≥ 300/4 Wo (= 75/Wo) | `git log --since="4 weeks ago" --first-parent --oneline main \| wc -l` — T900380 neu gescopt: `≥ 20/4 Wo` war um Faktor 27 zu locker (Ist 546) und konnte nicht rot werden, das 4. Muster-Symptom aus T013916. Der Ratchet sitzt jetzt bei 55 % des Ist und bleibt unter jedem seit 12 Wochen gemessenen 4-Wochen-Fenster (min 546, Median ~1000). Bei 75 Merges/Woche fällt der 4-Wochen-Schnitt unter 300 und das Ziel rotet. |
+| **G-DORA01** | Deployment Frequency (main-Merges/4 Wo) | 483 ✓ | ≥ 300/4 Wo (= 75/Wo) | `git log --since="4 weeks ago" --first-parent --oneline main \| wc -l` — T900380 neu gescopt: `≥ 20/4 Wo` war um Faktor 27 zu locker (Ist 546) und konnte nicht rot werden, das 4. Muster-Symptom aus T013916. Der Ratchet sitzt jetzt bei 55 % des Ist und bleibt unter jedem seit 12 Wochen gemessenen 4-Wochen-Fenster (min 546, Median ~1000). Bei 75 Merges/Woche fällt der 4-Wochen-Schnitt unter 300 und das Ziel rotet. |
 | **G-DORA02** | Lead Time (PR→merge) | 0 h ✓ | ≤ 1h | `gh-axi api repos/{owner}/{repo}/pulls?...` |
 | **G-DORA03** | Change Failure Rate (revert/hotfix-Rate) | 0 ‰ ✓ | ≤ 5 ‰ (= 0.5 %) | `git log --since="8 weeks ago" --first-parent --format='%s' main \| grep -ciE 'revert\|hotfix'` ÷ Gesamtzahl desselben Fensters — T900380: der Proxy zählte `^fix`-**Commits** (627 von 2320 = 27 %), nicht fehlgeschlagene Deployments; er meldete 27 % Verlustquote, während G-DORA04 für denselben Zeitraum **0** Reverts/Hotfixes zählte. Derselbe Sachverhalt, zwei widersprüchliche Ampelstände. Jetzt derselbe Ereignistyp wie G-DORA04, nur skalenfrei als Rate: bei ~290 Merges/Woche greift G-DORA04 (≤ 5 absolut) zuerst, fällt das Volumen, greift die Rate zuerst — zusammen decken sie das Feld ab. Promille statt Prozent, weil ganzzahliges Prozent 0.4 % und 0.5 % beide auf 0 abrundet. |
 | **G-DORA04** | MTTR (Proxy: revert/hotfix-Commits/8 Wo) | 1 ✓ | ≤ 5 | `git log --since="8 weeks ago" --first-parent --format='%ct %s' main \| grep -iE 'revert\|hotfix'` |
@@ -758,7 +758,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-AGENTIC05** | 3 Domain-Agenten unter .claude/agents (bp-*) | 0 ✓ | 0 | `find .claude/agents -name 'bp-*.md' \| wc -l == 3` |
 | **G-AGENTIC06** | OVERVIEW.md Skill-Zähler vs real | 0 ✓ | 0 | `claimed - real (Betrag)` via grep claim + `git ls-files -- .claude/skills \| grep -c '/SKILL\.md$'` (nur getrackte — market-cli-Installationen zählen nicht, T001783) |
 | **G-AGENTIC07** | Verwaiste aktive Skills | 0 ✓ | 0 | `for SKILL.md in git ls-files; if description exist && zero refs in CLAUDE.md/AGENTS.md/OVERVIEW.md/other SKILL.md → count` (nur getrackte) |
-| **G-AGENTIC08** | Tote Script-Pfade in projekteigenen Skill-`.md` | 1 ⚠ | 0 | `grep -rhoP '(?<![A-Za-z0-9_./-])scripts/...\.(sh\|mjs\|py)' $(project_owned_skills) + references --include='*.md' \| sort -u \| test -f || count` (Lookbehind gegen Substring-False-Positives; Scope seit T002303 auf alle `.md` statt nur `SKILL.md`, damit ausgelagerte `references/` nicht ungeprüft bleiben) |
+| **G-AGENTIC08** | Tote Script-Pfade in projekteigenen Skill-`.md` | 0 ✓ | 0 | `grep -rhoP '(?<![A-Za-z0-9_./-])scripts/...\.(sh\|mjs\|py)' $(project_owned_skills) + references --include='*.md' \| sort -u \| test -f || count` (Lookbehind gegen Substring-False-Positives; Scope seit T002303 auf alle `.md` statt nur `SKILL.md`, damit ausgelagerte `references/` nicht ungeprüft bleiben) |
 | **G-AGENTIC09** | Projekteigene `SKILL.md` >400 Zeilen | 0 ✓ | 0 | `for d in $(project_owned_skills); wc -l > 400 → count`; projekteigen = getrackt minus Vendor-Sektion in `OVERVIEW.md`. **Die Schwelle 400 steht operativ nur hier und in `scripts/health-goals-check.sh`** — die BATS-Guards (`agent-skills.bats`, `agentic-tooling-quality-goals.bats`) lesen sie von dort. Wer sie ändert, ändert genau diese zwei Stellen, sonst nichts; vor T002452 führten vier Stellen die Zahl unabhängig. Genau diese Spec-Nennung fehlte in der Aufzählung und stand deshalb bis T002678 unbemerkt auf dem Altstand 500 samt „Target statt Gate" (T002678). Fehlt der Vendor-Marker-Block in `OVERVIEW.md`, gilt jeder Skill als projekteigen — das Gate wird dann strenger, nie schwächer. Historie: [T002303, T002452](../../docs/health-goals-history.md) |
 | **G-AGENTIC11** | AGENTS.md opencode-Liste vs opencode.jsonc | 0 ✓ | 0 | `comm -3 <(grep opencode runtime registers AGENTS.md \| extract backtick-names) <(mcp_servers opencode.jsonc)` |
 | **G-AGENTIC12** | .mcp.json-Server undokumentiert | 0 ✓ | 0 | `for s in $(mcp_servers .mcp.json); grep -q -- "$s" mcp-tool-guide.md || count` |

@@ -23,6 +23,20 @@ from pathlib import Path
 SCHEMA_VERSION = 1
 DEFAULT_PROJECT = "home-patrick-Bachelorprojekt"
 DEFAULT_TIMEOUT_S = 30
+STALE_ATTEMPT_S = int(os.environ.get("CBM_STALE_ATTEMPT_SECONDS", "3600"))
+
+
+def _attempt_age_s(attempt):
+    ts = attempt.get("timestamp") if isinstance(attempt, dict) else None
+    if not isinstance(ts, str) or not ts:
+        return None
+    try:
+        dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return (datetime.now(timezone.utc) - dt).total_seconds()
+    except ValueError:
+        return None
 
 
 def _load_sibling(mod_name, filename):
@@ -462,7 +476,11 @@ def cmd_status(args):
             ats = attempt.get("timestamp", "")
             if astate in ("in_progress", "failed") and ats >= rts:
                 if astate == "in_progress":
-                    reasons.append("attempt-in-progress")
+                    age = _attempt_age_s(attempt)
+                    if age is not None and age >= STALE_ATTEMPT_S:
+                        reasons.append("attempt-in-progress-stale")
+                    else:
+                        reasons.append("attempt-in-progress")
                 else:
                     reasons.append("attempt-failed")
                 receipt = None
@@ -474,7 +492,7 @@ def cmd_status(args):
     fatal = {"repo-not-found", "head-unknown", "tool-missing", "probe-timeout",
              "probe-failed", "probe-malformed", "tool-error", "root-mismatch",
              "project-mismatch", "receipt-malformed", "receipt-identity-mismatch",
-             "attempt-in-progress", "attempt-failed", "attempt-malformed",
+             "attempt-in-progress", "attempt-malformed",
              "snapshot-incomplete", "fingerprint-failed", "git-missing", "git-timeout",
              "git-status-failed", "git-diff-failed", "git-ls-files-failed"}
     has_fatal = any(r in fatal for r in reasons)
@@ -504,9 +522,11 @@ def cmd_status(args):
         if "initial-refresh" not in reasons:
             reasons.append("initial-refresh")
         refresh_allowed = True
-    elif not has_fatal and not probe_failed and receipt is None and "db-changed" in reasons:
-        # T900996: DB-stat drift invalidates the receipt, but the single-flight
-        # wrapper refresh re-baselines it — allow refresh instead of deadlocking.
+    elif not has_fatal and not probe_failed and receipt is None and any(
+        r in reasons for r in ("db-changed", "attempt-failed", "attempt-in-progress-stale")
+    ):
+        # T900996 / stale or failed attempts invalidate the receipt, but the next
+        # single-flight refresh re-baselines it instead of deadlocking cbm-refresh.service.
         status = "unknown"
         refresh_allowed = True
     else:

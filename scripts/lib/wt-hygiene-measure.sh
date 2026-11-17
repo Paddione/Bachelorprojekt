@@ -313,6 +313,7 @@ cmd_unsafe_worktrees() {
     [ -d "$path" ] || continue
     _origin_remote "$repo" "$def" >/dev/null && valid_origin_seen=1
     _is_merged "$repo" "$head" "$def" || continue
+    _wt_live_locked "$path" && continue
     dirty="$(git -C "$path" status --porcelain 2>/dev/null)" || continue
     [ -n "$dirty" ] && n=$((n + 1))
   done <<< "$wts"

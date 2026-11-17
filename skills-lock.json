@@ -5,7 +5,8 @@
       "source": "supabase/supabase",
       "sourceType": "github",
       "skillPath": ".agents/skills/vitest/SKILL.md",
-      "computedHash": "04a6279b6a4fb458d360239a2cf5161ec4a8da8b9ab074fa8c0661381161cc2e"
+      "computedHash": "04a6279b6a4fb458d360239a2cf5161ec4a8da8b9ab074fa8c0661381161cc2e",
+      "commit": "a0a17e17e82feb4c9298f14aa1169fc095c05c60"
     }
   }
 }

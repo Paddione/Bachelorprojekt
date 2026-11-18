@@ -24,6 +24,7 @@ lock_scopes:
   - gpu
   - model
   - board
+  - main-checkout
 
 guard_rules:
   worktree_only: true

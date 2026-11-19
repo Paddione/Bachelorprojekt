@@ -30,7 +30,7 @@ spec:
       containers:
         - name: sish
           # runAsNonRoot-Ausnahme: bindet --http-address=:80 (<1024) per Design als root
-          image: antoniomika/sish:v4.0.0@sha256:475a4943def8fdb3f28b5c58fa26ba74009266981e049cd125fdac9916cd8f44
+          image: antoniomika/sish:v4.1.1@sha256:5936a5487d1825f425877857734c4160b47f5f2c03c15717161c27ba89c4483a
           args:
             - --domain=${DEV_DOMAIN}
             - --ssh-address=:2222

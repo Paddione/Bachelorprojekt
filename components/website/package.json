@@ -24,7 +24,7 @@
     "db:migrate": "tsx src/db/migrate.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^1.8.0",
+    "@anthropic-ai/sdk": "^1.9.0",
     "@astrojs/check": "^0.9.12",
     "@astrojs/node": "^11.1.13",
     "@astrojs/react": "^7.1.9",

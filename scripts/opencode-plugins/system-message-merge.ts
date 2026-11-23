@@ -1,7 +1,7 @@
-// system-message-merge — fuehrt system-Nachrichten fuer llamacpp-local zusammen.
+// system-message-merge — fuehrt system-Nachrichten fuer strata-local zusammen.
 //
 // Symptom:
-// opencode bricht beim Aufruf von Provider llamacpp-local (:1919, FreeToken) ab mit
+// opencode bricht beim Aufruf von Provider strata-local (:1919) ab mit
 // "could not encode request: System message must be at the beginning."
 //
 // Ursache:
@@ -86,7 +86,7 @@ function mergeSystemMessages(messages: ChatMessage[]): ChatMessage[] {
 export const SystemMessageMerge = async () => {
   return {
     config: async (cfg: any) => {
-      const provider = cfg?.provider?.["llamacpp-local"]
+      const provider = cfg?.provider?.["strata-local"]
       if (!provider) return
 
       provider.options = provider.options ?? {}
@@ -131,7 +131,7 @@ export default {
   id: "system-message-merge",
   async setup(ctx: { session: { hook: (name: string, callback: (event: { model: { providerID: string }; request: Request }) => Promise<void>) => Promise<unknown> } }) {
     await ctx.session.hook("http.request", async (event) => {
-      if (event.model.providerID !== "llamacpp-local") return
+      if (event.model.providerID !== "strata-local") return
       let body: ChatRequestBody
       try { body = await event.request.clone().json() } catch { return }
       if (!Array.isArray(body?.messages)) return

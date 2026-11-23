@@ -29,7 +29,7 @@ const REPO_ROOT = resolve(AGENT_BENCH_DIR, '..', '..', '..');
 // :8080) ist Windows-nativ (Autostart via register-qwen35-4b-autostart.ps1)
 // und hat keine User-Unit — der Bench startet/stoppt sie nicht.
 export const PRODUCTION_SERVICES = Object.freeze([
-  'qwen38-gsq-iq2s.service',
+  'inkling2-mini-strata.service',
 ]);
 
 const SYSTEMCTL = process.env.AGENT_BENCH_SYSTEMCTL || 'systemctl';
@@ -338,7 +338,7 @@ export async function restoreProduction(pool) {
     await run(SYSTEMCTL, ['--user', 'start', service], { timeout: 300_000 });
   }
   for (const service of services) {
-    const port = { 'qwen38-gsq-iq3xxs.service': 1919, 'qwen38-gsq-iq2s.service': 1919 }[service];
+    const port = { 'inkling2-mini-strata.service': 1919 }[service];
     if (port) await waitForModels(`http://127.0.0.1:${port}`, 120_000);
   }
   const released = await releaseGpu();

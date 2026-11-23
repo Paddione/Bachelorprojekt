@@ -71,7 +71,7 @@ def test_opencode_agent_model_drift_t002545_die_agentendefinitionen_nennen_kein_
 
 def test_opencode_agent_model_drift_t002545_die_agentendefinitionen_verweisen_auf_qwen3_8_27b(repo_root):
     text = (repo_root / ".opencode/agent-models.jsonc").read_text(encoding="utf-8")
-    assert sum(1 for l in text.splitlines() if "llamacpp-local/Qwen3.8-27B" in l) > 0
+    assert sum(1 for l in text.splitlines() if "strata-local/inkling-2-mini-sq-15" in l) > 0
 
 
 def test_opencode_agent_model_drift_t002545_keine_llamacpp_local_kontextzahl_widerspricht_der_served_kv(run_cmd, repo_root):
@@ -79,9 +79,9 @@ def test_opencode_agent_model_drift_t002545_keine_llamacpp_local_kontextzahl_wid
     assert agents.is_file()
     js = JSON5_PRELUDE + f"""
     const d = j5.parse(fs.readFileSync('{agents}', 'utf8'));
-    const m = ((d.provider || {{}})['llamacpp-local'] || {{}}).models || {{}};
+    const m = ((d.provider || {{}})['strata-local'] || {{}}).models || {{}};
     const keys = Object.keys(m);
-    if (!keys.length) {{ console.error('llamacpp-local-Katalog ist leer'); process.exit(1); }}
+    if (!keys.length) {{ console.error('strata-local-Katalog ist leer'); process.exit(1); }}
     for (const k of keys) {{
       const ctx = (m[k].limit || {{}}).context;
       if (!Number.isInteger(ctx) || ctx <= 0) {{
@@ -90,8 +90,8 @@ def test_opencode_agent_model_drift_t002545_keine_llamacpp_local_kontextzahl_wid
       if (ctx === 262144) {{
         console.error(k + ' ctx ' + ctx + ' ist das advertised max_model_len, nicht die served KV'); process.exit(1);
       }}
-      if (ctx > 139264) {{
-        console.error(k + ' ctx ' + ctx + ' uebersteigt die served 139264 KV'); process.exit(1);
+      if (ctx > 131072) {{
+        console.error(k + ' ctx ' + ctx + ' uebersteigt die served 131072 KV'); process.exit(1);
       }}
     }}
     process.exit(0);
@@ -127,23 +127,23 @@ def test_opencode_agent_model_drift_t003204_kein_agent_zeigt_auf_ein_abgeschalte
     referenced = sorted({
         m.split("/", 1)[1]
         for line in text.splitlines()
-        for m in re.findall(r'"model": "(llamacpp-local/[a-z0-9-]+)"', line)
+        for m in re.findall(r'"model": "(strata-local/[a-z0-9-]+)"', line)
     })
     disabled = [l for l in _loadouts(repo_root) if l.get("enabled") is False]
     assert len(disabled) > 0, "Positiv-Anker: kein abgeschaltetes Loadout"
 
-    assert re.findall(r'"model": "llamacpp-local/[A-Za-z0-9._-]+"', text), "Positiv-Anker: keine llamacpp-local-Referenz"
+    assert re.findall(r'"model": "strata-local/[A-Za-z0-9._-]+"', text), "Positiv-Anker: keine strata-local-Referenz"
 
     js = JSON5_PRELUDE + f"""
     const d = j5.parse(fs.readFileSync('{agents}', 'utf8'));
-    const known = new Set(Object.keys(((d.provider || {{}})['llamacpp-local'] || {{}}).models || {{}}));
+    const known = new Set(Object.keys(((d.provider || {{}})['strata-local'] || {{}}).models || {{}}));
     const refs = new Set();
     for (const a of Object.values(d.agent || {{}})) {{
       const m = String(a.model || '');
-      if (m.startsWith('llamacpp-local/')) refs.add(m.split('/')[1]);
+      if (m.startsWith('strata-local/')) refs.add(m.split('/')[1]);
     }}
     const dead = [...refs].filter((r) => !known.has(r));
-    if (dead.length) {{ console.error('tote llamacpp-local-Referenzen: ' + dead.join(',')); process.exit(1); }}
+    if (dead.length) {{ console.error('tote strata-local-Referenzen: ' + dead.join(',')); process.exit(1); }}
     process.exit(0);
     """
     res = _json5(run_cmd, repo_root, js)
@@ -185,10 +185,10 @@ def test_opencode_agent_model_drift_t003204_jeder_familien_subagent_steht_in_der
                 allowed.add(tok.strip('"'))
     assert allowed, "Positiv-Anker: Permission-Liste leer"
 
-    # grep -B4 '"model": "llamacpp-local/' | grep -oE '^    "name": \{'
+    # grep -B4 '"model": "strata-local/' | grep -oE '^    "name": \{'
     included = set()
     for i, line in enumerate(lines):
-        if '"model": "llamacpp-local/' in line:
+        if '"model": "strata-local/' in line:
             included.update(range(max(0, i - 4), i + 1))
     subagent_names = set()
     for i in sorted(included):

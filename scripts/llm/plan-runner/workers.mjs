@@ -1,7 +1,7 @@
 // workers.mjs — Worker-Pool des plan-runners (T900504, T016656): drei Tracks.
 //  - direct: In-Process-Tool-Loop gegen vLLM :8123 (w4a4, direct-worker.mjs), ohne opencode,
 //  - cloud:  `opencode run --agent plan-worker-muse` (Muse Spark 1.3 im Go-Abo),
-//  - self:   Selbstaufruf des Orchestrators (Agent plan-worker-self auf llamacpp-local, :1919),
+//  - self:   Selbstaufruf des Orchestrators (Agent plan-worker-self auf strata-local, :1919),
 //            nur wenn :1919 beim Preflight antwortet.
 // Verwaltet die Direkt-/Cloud-Slots und puffert beendete Worker-Ergebnisse.
 // Aufrufer: scripts/llm/plan-runner.mjs. Runbook: docs/runbooks/plan-runner.md.

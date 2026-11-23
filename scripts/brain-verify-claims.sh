@@ -42,7 +42,7 @@ done
 case "$MAX_PAIRS" in ''|*[!0-9]*) echo "error: --max-pairs must be a number" >&2; exit 2 ;; esac
 
 LM_URL="${LM_STUDIO_URL:-http://127.0.0.1:1919}"
-LM_MODEL="${LM_MODEL:-Qwen3.8-27B}"
+LM_MODEL="${LM_MODEL:-inkling-2-mini-sq-15}"
 LM_TIMEOUT="${LM_TIMEOUT:-180}"
 # 2048, nicht 1024: Das Modell verbraucht auch mit abgeschaltetem Thinking noch
 # ~1k Token Reasoning; bei 1024 verhungert der Content mit finish_reason=length
@@ -71,7 +71,7 @@ page_body() {
 call_llm() {
   local prompt="$1" response curl_cfg="" think='{}' out reason_len finish
   [ -n "$LM_API_KEY" ] && curl_cfg="$(printf 'header = "Authorization: Bearer %s"' "$LM_API_KEY")"
-  [ "${LM_DISABLE_THINKING:-1}" = "1" ] && think='{"thinking":{"type":"disabled"},"chat_template_kwargs":{"enable_thinking":false,"reasoning_strength":"low"}}'
+  [ "${LM_DISABLE_THINKING:-1}" = "1" ] && think='{"reasoning_effort":"none","thinking":{"type":"disabled"},"chat_template_kwargs":{"enable_thinking":false,"reasoning_strength":"low"}}'
   response="$(jq -n --rawfile prompt /dev/fd/4 \
       --arg model "$LM_MODEL" \
       --argjson max_tokens "$LM_MAX_TOKENS" \

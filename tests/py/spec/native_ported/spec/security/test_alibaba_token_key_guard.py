@@ -40,7 +40,7 @@ def test_gitleaks_config_erfasst_das_alibaba_token_format_sk_separated_api_key(r
 def test_agent_models_jsonc_enthaelt_keinen_plaintext_sk_api_key(repo_root):
     text = (repo_root / ".opencode" / "agent-models.jsonc").read_text(encoding="utf-8")
     # Positiv-Anker: mindestens ein Provider ist definiert.
-    assert '"llamacpp-local"' in text
+    assert '"strata-local"' in text
     # Negativ: kein sk-...-Token und kein apiKey-Feld mit sk-...-Wert.
     assert not re.search(r"sk-[A-Za-z0-9._-]{20,}", text)
     assert not re.search(r'"apiKey"[ \t]*:[ \t]*"sk-', text)

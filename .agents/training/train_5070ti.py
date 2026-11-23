@@ -14,9 +14,9 @@ Data:   .agents/training/dataset_train.jsonl  (see DATASET_PLAN.md, >=1000 uniqu
 Output: qwen35_4b_bp_lora/ (16-bit, default) or ..._lora_4bit/ — GGUF export
         via export_model.py (expects the default 16-bit adapter).
 
-GPU-PREFLIGHT: the 5070 Ti also hosts the Qwen3.8-27B orchestrator rail
-(qwen38-gsq-iq3xxs.service, ~15/16 GB). Stop the rail first
-(systemctl --user stop qwen38-gsq-iq3xxs), restore it after training.
+GPU-PREFLIGHT: the 5070 Ti also hosts the Inkling-2-Mini orchestrator rail
+(inkling2-mini-strata.service, ~15/16 GB). Stop the rail first
+(systemctl --user stop inkling2-mini-strata), restore it after training.
 The script aborts if free VRAM is insufficient; override with --force.
 
 Cloud alternative (ADR-007 primary path): HF Jobs training in
@@ -79,9 +79,9 @@ def check_gpu_preflight(min_free_mib: int, free_mib: int | None, device: int = 1
         return True, f"[preflight] GPU {device}: {free_mib} MiB free — OK"
     msg = (
         f"[preflight] GPU {device} has only {free_mib} MiB free "
-        f"(need >= {min_free_mib}). The 27B rail (qwen38-gsq-iq3xxs.service, "
+        f"(need >= {min_free_mib}). The primary rail (inkling2-mini-strata.service, "
         "~15/16 GB) is probably still running:\n"
-        "  systemctl --user stop qwen38-gsq-iq3xxs   # restore after training!\n"
+        "  systemctl --user stop inkling2-mini-strata   # restore after training!\n"
         "Re-run with --force to override."
     )
     return False, msg

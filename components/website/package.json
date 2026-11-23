@@ -24,7 +24,7 @@
     "db:migrate": "tsx src/db/migrate.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^1.10.0",
+    "@anthropic-ai/sdk": "^1.11.0",
     "@astrojs/check": "^0.9.12",
     "@astrojs/node": "^11.1.14",
     "@astrojs/react": "^7.1.9",
@@ -41,7 +41,7 @@
     "epub2": "^3.0.2",
     "nanoid": "^6.0.2",
     "nodemailer": "^10.6.0",
-    "openai": "^7.60.0",
+    "openai": "^7.62.0",
     "pdf-lib": "^1.17.1",
     "pdf-parse": "^2.4.5",
     "pdfkit": "^0.20.2",

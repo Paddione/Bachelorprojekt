@@ -743,7 +743,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-DOC02** | Root-CLAUDE.md Zeilen | 89 ✓ | ≤ 200 | Positiv-Anker: `CLAUDE.md` fehlt ⇒ n/a; `wc -l < CLAUDE.md` |
 | **G-DOC03** | README-Index in Hauptverzeichnissen | 4/5 ✓ | 5/5 | `for d in website brett scripts tests k3d; do ls "$d"/README* ... done` |
 | **G-CI01** | main CI-Erfolgsrate (letzte 20) | 95 % ✓ | ≥ 80 % | `gh-axi run list --workflow ci.yml --branch main --limit 20 \| grep -oE 'completed,(success\|failure\|cancelled)' \| sort \| uniq -c` (Target gelockert auf ≥ 80 %, letzte 15 Läufe 100 % grün) |
-| **G-CI02** | Rote main-HEAD-Läufe | 1 ⚠ | 0 | `gh-axi run list --workflow ci.yml --branch main --limit 5 \| grep -c failure` |
+| **G-CI02** | Rote main-HEAD-Läufe | 0 ✓ | 0 | `gh-axi run list --workflow ci.yml --branch main --limit 5 \| grep -c failure` |
 | **G-CD02** | post-merge.yml-Rate | 100 % ✓ | ≥ 95 % | `gh-axi run list --workflow post-merge.yml --branch main --limit 15 \| ...` |
 | **G-DORA01** | Deployment Frequency (main-Merges/4 Wo) | 376 ✓ | ≥ 300/4 Wo (= 75/Wo) | `git log --since="4 weeks ago" --first-parent --oneline main \| wc -l` — T900380 neu gescopt: `≥ 20/4 Wo` war um Faktor 27 zu locker (Ist 546) und konnte nicht rot werden, das 4. Muster-Symptom aus T013916. Der Ratchet sitzt jetzt bei 55 % des Ist und bleibt unter jedem seit 12 Wochen gemessenen 4-Wochen-Fenster (min 546, Median ~1000). Bei 75 Merges/Woche fällt der 4-Wochen-Schnitt unter 300 und das Ziel rotet. |
 | **G-DORA02** | Lead Time (PR→merge) | 0 h ✓ | ≤ 1h | `gh-axi api repos/{owner}/{repo}/pulls?...` |

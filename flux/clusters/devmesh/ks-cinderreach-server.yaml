@@ -1,0 +1,20 @@
+---
+# Cinderreach dedicated server (unity-sandbox goal cinderreach-dedicated-server).
+# Manifests live in dotfiles apps/cinderreach-server/k8s; players reach the pod via Unity Relay.
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: cinderreach-server
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: ./apps/cinderreach-server/k8s
+  prune: true
+  serviceAccountName: devmesh-tenant-deploy
+  sourceRef:
+    kind: GitRepository
+    name: dotfiles
+  dependsOn:
+    - name: devmesh-workspace
+  timeout: 5m0s
+  wait: true

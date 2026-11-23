@@ -249,7 +249,7 @@ def test_worker_agents_are_primary_agents_on_the_right_backends(repo_root, run_c
         "import { AGENT_CLOUD, AGENT_SELF } from '" + str(repo_root / "scripts/llm/plan-runner/workers.mjs") + "';\n"
         "const s = readFileSync('" + str(repo_root / ".opencode/agent-models.jsonc") + "', 'utf8');\n"
         "const o = JSON.parse(s.replace(/^\\s*\\/\\/.*$/gm, '').replace(/\\/\\*[\\s\\S]*?\\*\\//g, ''));\n"
-        "const want = { [AGENT_CLOUD]: 'opencode-go/', [AGENT_SELF]: 'llamacpp-local/' };\n"
+        "const want = { [AGENT_CLOUD]: 'opencode-go/', [AGENT_SELF]: 'strata-local/' };\n"
         "for (const [name, prefix] of Object.entries(want)) {\n"
         "  const a = (o.agent || {})[name];\n"
         "  if (!a) { console.log('missing ' + name); process.exit(1); }\n"

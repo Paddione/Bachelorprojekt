@@ -56,7 +56,7 @@ assert ok_pass is True, f"expected pass with 15950 MiB, got {msg}"
 
 ok_fail, msg = t.check_gpu_preflight(13_000, 8_000, device=1)
 assert ok_fail is False, f"expected fail with 8000 MiB, got {msg}"
-assert "qwen38-gsq-iq3xxs" in msg, "error message should mention 27B rail service"
+assert "inkling2-mini-strata" in msg, "error message should mention primary rail service"
 '''
     res = _py(run_cmd, repo_root, train_env, code)
     assert res.returncode == 0, res.output

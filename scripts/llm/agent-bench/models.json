@@ -8,21 +8,21 @@
     "3060ti": null
   },
   "production_services": [
-    "qwen38-gsq-iq2s.service"
+    "inkling2-mini-strata.service"
   ],
   "models": [
     {
       "id": "qwen38-27b",
-      "label": "Qwen3.8-27B-GSQ-RCO-IQ2_S-mtp (produktiver Orchestrator)",
+      "label": "Inkling-2-Mini SQ-15 (Strata, produktiver Orchestrator)",
       "engine": "llamacpp",
       "gpu": "5070ti",
       "port": 1919,
-      "service": "qwen38-gsq-iq2s.service",
+      "service": "inkling2-mini-strata.service",
       "start": null,
       "capabilities": [
         "tools"
       ],
-      "max_context": 139264,
+      "max_context": 131072,
       "enabled": true
     },
     {

@@ -14,7 +14,7 @@ DRIVE_JS = """
       fetch: async (_input, init) => { sent = init.body; return new Response("{}") },
     } } } }
     for (const p of plugins) { const hooks = await p({}); if (hooks.config) await hooks.config(cfg) }
-    const body = JSON.stringify({ model: "Qwen3.8-27B", messages: JSON.parse(process.env.MESSAGES) })
+    const body = JSON.stringify({ model: "inkling-2-mini-sq-15", messages: JSON.parse(process.env.MESSAGES) })
     await cfg.provider[process.env.PROVIDER].options.fetch("http://127.0.0.1:1919/v1/chat/completions", { method: "POST", body })
     const msgs = JSON.parse(sent).messages
     console.log(msgs.map((m) => m.role).join(","))
@@ -41,7 +41,7 @@ def test_t900220_plugin_file_exists(repo_root, plugin):
 
 
 def test_t900220_two_leading_system_messages_are_merged_into_one_at_position_0(run_cmd, plugin):
-    res = _drive(run_cmd, plugin, "llamacpp-local",
+    res = _drive(run_cmd, plugin, "strata-local",
                  '[{"role":"system","content":"A"},{"role":"system","content":"B"},{"role":"user","content":"hi"}]')
     assert res.returncode == 0, res.output
     lines = res.output.splitlines()
@@ -50,7 +50,7 @@ def test_t900220_two_leading_system_messages_are_merged_into_one_at_position_0(r
 
 
 def test_t900220_a_system_message_later_in_the_conversation_moves_to_the_front(run_cmd, plugin):
-    res = _drive(run_cmd, plugin, "llamacpp-local",
+    res = _drive(run_cmd, plugin, "strata-local",
                  '[{"role":"system","content":"A"},{"role":"user","content":"u1"},{"role":"assistant","content":"a1"},'
                  '{"role":"system","content":"B"},{"role":"user","content":"u2"}]')
     assert res.returncode == 0, res.output
@@ -60,7 +60,7 @@ def test_t900220_a_system_message_later_in_the_conversation_moves_to_the_front(r
 
 
 def test_t900220_array_content_is_flattened_to_text_when_merging(run_cmd, plugin):
-    res = _drive(run_cmd, plugin, "llamacpp-local",
+    res = _drive(run_cmd, plugin, "strata-local",
                  '[{"role":"system","content":[{"type":"text","text":"A"}]},{"role":"system","content":"B"},'
                  '{"role":"user","content":"hi"}]')
     assert res.returncode == 0, res.output
@@ -70,7 +70,7 @@ def test_t900220_array_content_is_flattened_to_text_when_merging(run_cmd, plugin
 
 
 def test_t900220_a_single_leading_system_message_passes_through_unchanged(run_cmd, plugin):
-    res = _drive(run_cmd, plugin, "llamacpp-local",
+    res = _drive(run_cmd, plugin, "strata-local",
                  '[{"role":"system","content":"A"},{"role":"user","content":"hi"}]')
     assert res.returncode == 0, res.output
     lines = res.output.splitlines()

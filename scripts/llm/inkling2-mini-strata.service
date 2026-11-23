@@ -1,0 +1,25 @@
+# systemd-User-Unit: Default Agent-Modell auf der RTX 5070 Ti (CUDA0, 16 GB), Strata :1919.
+# Inkling-2-Mini SQ-15 via strata-inkling + Vision + DSpark-Drafter,
+# --parallel 1, --max-context 131072, --kv fp8 --kv-offload on (Single-Slot-Shape).
+#
+# Installation (Kopie, KEIN Symlink -- T900376):
+#   cp scripts/llm/inkling2-mini-strata.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload && systemctl --user enable --now inkling2-mini-strata
+
+[Unit]
+Description=strata serve Inkling-2-Mini SQ-15 + Vision + DSpark (RTX 5070 Ti, 131072 ctx, FP8 KV, single slot) auf :1919
+After=network.target
+
+[Service]
+Type=simple
+ExecCondition=%h/scripts/gpu-lease-guard.sh 0
+Environment=PATH=/home/patrick/.local/bin:/usr/lib/wsl/lib:/usr/local/cuda-13.4/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Environment=CUDA_DEVICE_ORDER=PCI_BUS_ID
+Environment=CUDA_VISIBLE_DEVICES=GPU-7dc4bd81-3a8d-c414-1751-f74dee8882f4
+ExecStart=/home/patrick/.local/bin/strata serve --profile /home/patrick/.config/strata/inkling-2-mini-1919.json --host 0.0.0.0 --port 1919 --parallel 1 --shutdown-timeout 15
+Restart=on-failure
+RestartSec=10
+TimeoutStartSec=300
+
+[Install]
+WantedBy=default.target

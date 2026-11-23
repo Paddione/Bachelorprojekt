@@ -21,9 +21,9 @@ const fs = require('fs');
 const s = fs.readFileSync('__REPO__/.opencode/agent-models.jsonc','utf8');
 const j = s.replace(/^\s*\/\/.*$/gm,'').replace(/\/\*[\s\S]*?\*\//g,'');
 const o = JSON.parse(j);
-const m = ((o.provider || {})['llamacpp-local'] || {}).models || {};
-const entry = m['Qwen3.8-27B'];
-if (!entry) { console.error('Qwen3.8-27B fehlt im llamacpp-local-Katalog'); process.exit(1); }
+const m = ((o.provider || {})['strata-local'] || {}).models || {};
+const entry = m['inkling-2-mini-sq-15'];
+if (!entry) { console.error('inkling-2-mini-sq-15 fehlt im strata-local-Katalog'); process.exit(1); }
 const ctx = (entry.limit || {}).context;
 if (!Number.isInteger(ctx) || ctx <= 0) {
   console.error('ctx ' + ctx + ' ist keine positive ganze Zahl'); process.exit(1);
@@ -31,8 +31,8 @@ if (!Number.isInteger(ctx) || ctx <= 0) {
 if (ctx === 262144) {
   console.error('ctx ' + ctx + ' ist das advertised max_model_len, nicht die served KV'); process.exit(1);
 }
-if (ctx > 139264) {
-  console.error('ctx ' + ctx + ' uebersteigt die served 139264 KV'); process.exit(1);
+if (ctx > 131072) {
+  console.error('ctx ' + ctx + ' uebersteigt die served 131072 KV'); process.exit(1);
 }
 process.exit(0);
 """
@@ -47,8 +47,8 @@ for (const [name, mode] of Object.entries(expect)) {
   const v = a[name];
   if (!v) { console.error(name + ' fehlt in agent-models.jsonc'); process.exit(1); }
   if (v.mode !== mode) { console.error(name + ' mode ' + v.mode + ' != ' + mode); process.exit(1); }
-  if (v.model !== 'llamacpp-local/Qwen3.8-27B') {
-    console.error(name + ' model ' + v.model + ' != llamacpp-local/Qwen3.8-27B'); process.exit(1);
+  if (v.model !== 'strata-local/inkling-2-mini-sq-15') {
+    console.error(name + ' model ' + v.model + ' != strata-local/inkling-2-mini-sq-15'); process.exit(1);
   }
 }
 process.exit(0);
@@ -63,8 +63,8 @@ const prim = (o.agent || {})['bp-build'];
 if (!prim) { console.error('bp-build fehlt'); process.exit(1); }
 if (prim.mode !== 'primary') { console.error('bp-build mode ' + prim.mode + ' != primary'); process.exit(1); }
 const model = prim.model;
-if (model !== 'llamacpp-local/Qwen3.8-27B') {
-  console.error('bp-build model ' + model + ' != llamacpp-local/Qwen3.8-27B'); process.exit(1);
+if (model !== 'strata-local/inkling-2-mini-sq-15') {
+  console.error('bp-build model ' + model + ' != strata-local/inkling-2-mini-sq-15'); process.exit(1);
 }
 const [prov, mid] = model.split('/');
 const entry = ((o.provider[prov] || {}).models || {})[mid];
@@ -76,8 +76,8 @@ if (!Number.isInteger(ctx) || ctx <= 0) {
 if (ctx === 262144) {
   console.error('ctx ' + ctx + ' ist das advertised max_model_len, nicht die served KV'); process.exit(1);
 }
-if (ctx > 139264) {
-  console.error('ctx ' + ctx + ' uebersteigt die served 139264 KV'); process.exit(1);
+if (ctx > 131072) {
+  console.error('ctx ' + ctx + ' uebersteigt die served 131072 KV'); process.exit(1);
 }
 process.exit(0);
 """
@@ -95,11 +95,11 @@ process.exit(0);
 NODE_DEAD_ENTRIES = r"""
 const j5 = require('json5');
 const d = j5.parse(require('fs').readFileSync('__REPO__/.opencode/agent-models.jsonc','utf8'));
-const m = ((d.provider || {})['llamacpp-local'] || {}).models || {};
-if (!('Qwen3.8-27B' in m)) {
-  console.error('positive anchor failed: Qwen3.8-27B fehlt im llamacpp-local-Katalog'); process.exit(1);
+const m = ((d.provider || {})['strata-local'] || {}).models || {};
+if (!('inkling-2-mini-sq-15' in m)) {
+  console.error('positive anchor failed: inkling-2-mini-sq-15 fehlt im strata-local-Katalog'); process.exit(1);
 }
-const dead = ['Qwen3.8-27B-gsq','Qwen3.6-35B-A3B-NVFP4','qwen38-220k','gptoss-context','gemma26-factory','gemma4','gemma26-throughput','gemma12-vision','hauhau-qwen36']
+const dead = ['Qwen3.8-27B','Qwen3.8-27B-gsq','Qwen3.6-35B-A3B-NVFP4','qwen38-220k','gptoss-context','gemma26-factory','gemma4','gemma26-throughput','gemma12-vision','hauhau-qwen36']
   .filter(k => k in m);
 if (dead.length) { console.error('dead catalog entries still declared: ' + dead.join(',')); process.exit(1); }
 process.exit(0);
@@ -107,14 +107,14 @@ process.exit(0);
 
 NODE_CONTEXT_VALUE = r"""
 const d = require('json5').parse(require('fs').readFileSync('__REPO__/.opencode/agent-models.jsonc','utf8'));
-const e = (((d.provider || {})['llamacpp-local'] || {}).models || {})['Qwen3.8-27B'];
+const e = (((d.provider || {})['strata-local'] || {}).models || {})['inkling-2-mini-sq-15'];
 console.log(e ? e.limit.context : 'missing');
 """
 
 PY_NO_BAD_BASEURL = r"""
 import re
 s = open('__REPO__/.opencode/agent-models.jsonc').read()
-bad = re.findall(r'"(llamacpp[^"]*)"\s*:\s*\{.*?"baseURL"\s*:\s*"[^"]*:8091[^"]*"', s, re.S)
+bad = re.findall(r'"((?:strata|llamacpp)[^"]*)"\s*:\s*\{.*?"baseURL"\s*:\s*"[^"]*:8091[^"]*"', s, re.S)
 print(len(bad))
 """
 
@@ -211,7 +211,7 @@ def test_no_opencode_config_points_a_baseurl_at_the_bonsai_port_8093(repo_root):
 
 def test_agent_models_jsonc_defines_the_llamacpp_local_provider_t002545_t002633(repo_root):
     text = (repo_root / ".opencode" / "agent-models.jsonc").read_text(encoding="utf-8")
-    assert '"llamacpp-local"' in text
+    assert '"strata-local"' in text
 
 
 def test_agent_models_jsonc_points_the_local_llama_cpp_provider_at_the_llm_proxy_not_at_8091_t002558(repo_root):
@@ -251,7 +251,7 @@ def test_t016419_dead_checkpoint_catalog_entries_are_removed(repo_root):
 
 
 def test_t900348_t900365_catalog_context_matches_c_and_port_of_the_llama_cpp_unit(repo_root):
-    unit = repo_root / "scripts" / "llm" / "qwen38-gsq-iq2s.service"
+    unit = repo_root / "scripts" / "llm" / "inkling2-mini-strata.service"
     text = unit.read_text(encoding="utf-8")
 
     def _second_fields(pattern):
@@ -261,13 +261,11 @@ def test_t900348_t900365_catalog_context_matches_c_and_port_of_the_llama_cpp_uni
                 values.append(match.group(0).split()[1])
         return values
 
-    context_values = _second_fields(r"-c [0-9]+")
-    assert context_values, "grep -oE '-c [0-9]+' liefert nichts"
-    assert "\n".join(context_values) == "139264"
+    assert "131072" in text, "131072 max-context fehlt in inkling2-mini-strata.service"
     port_values = _second_fields(r"--port [0-9]+")
     assert "\n".join(port_values) == "1919"
     status, output = _node(repo_root, NODE_CONTEXT_VALUE)
-    assert output == "139264", output
+    assert output == "131072", output
 
 
 def test_t900051_freetoken_smoke_test_verifies_version_model_kv_and_concurrency(repo_root):

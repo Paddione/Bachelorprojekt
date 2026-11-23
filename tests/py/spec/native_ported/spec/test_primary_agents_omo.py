@@ -27,8 +27,8 @@ def test_t900858_opencode_declares_bp_build_bp_run_bp_ship_as_primaries(run_cmd,
     const d = require('json5').parse(require('fs').readFileSync('{omo["models"]}','utf8'));
     const a = d.agent || {{}};
     const expect = {{
-      'bp-build': 'llamacpp-local/Qwen3.8-27B',
-      'bp-run': 'llamacpp-local/Qwen3.8-27B',
+      'bp-build': 'strata-local/inkling-2-mini-sq-15',
+      'bp-run': 'strata-local/inkling-2-mini-sq-15',
       'bp-ship': 'opencode-go/muse-spark-1.3-contributor',
     }};
     for (const [name, model] of Object.entries(expect)) {{

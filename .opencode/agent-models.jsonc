@@ -2,45 +2,45 @@
   "provider": {
     // Lokaler Provider auf :1919 [T900208, T900348, T900359, T900365].
     //
-    // Der Key heisst aus historischen Gruenden "llamacpp-local" (Modell-Strings
-    // und opencode-Default referenzieren ihn). Seit T900348 steht dahinter wieder
-    // llama.cpp, seit 2026-10-26 Qwen3.8-27B GSQ-RCO IQ2_S-mtp (139264 served KV,
-    // MTP n-max 4, -ub 512, -cram 12288) auf der RTX 5070 Ti allein
-    // (scripts/llm/qwen38-gsq-iq2s.service).
-    // Die Modell-ID "Qwen3.8-27B" ist der opencode-seitige Name (llama-server ignoriert ihn;
-    // live-Alias: Qwen3.8-27b-gsq-rco-iq2s; davor IQ3_XXS-mtp mit 153600 KV, davor
-    // opencode-Alias "Muse-Glimmer-30B", T900365).
-    // Davor opencode-Alias "Muse-Glimmer-30B" (T900365), Qwen3.8 GSQ-RCO IQ3_XXS ohne MTP (T900359), FreeToken (T900203).
+    // Seit dem Cutover steht dahinter Strata (:1919): Inkling-2-Mini SQ-15 +
+    // Vision + DSpark-Drafter, 131072 max-context, FP8-KV + Host-KV-Offload
+    // (--vram-experts-gb 10.3 --ram-experts-gb 2.0) auf der RTX 5070 Ti allein
+    // (scripts/llm/inkling2-mini-strata.service).
     //
     // Direkt statt ueber den llm-proxy (:18235): der Proxy ist seit 2026-09-03
-    // stillgelegt (ADR-007). Der Server bedient einen Slot (-np 1); weitere
+    // stillgelegt (ADR-007). Der Server bedient einen Slot (--parallel 1); weitere
     // Requests warten in seiner Queue. Ausweichen auf Cloud (exe-muse) ist
     // eine explizite Agenten-Wahl.
-    "llamacpp-local": {
+    "strata-local": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "llama.cpp :1919 (Qwen3.8-27B GSQ-RCO IQ2_S-mtp, RTX 5070 Ti, 139264 served KV)",
+      "name": "Strata :1919 (Inkling-2-Mini SQ-15, RTX 5070 Ti, single slot, 131072 ctx)",
       "options": {
         "baseURL": "http://127.0.0.1:1919/v1",
-        "timeout": 600000,
-        "chunkTimeout": 120000
+        "timeout": 1800000,
+        "chunkTimeout": 900000
       },
       "models": {
-        // GEMESSEN 2026-10-03 (llama.cpp e85e15cf6, 5070 Ti allein, q4_0-KV,
-        // draft-mtp n-max 4, scripts/llm/measurements/2026-10-03-qwen38-iq2s-vs-iq3xxs.md):
-        // Short-Prompt Decode 106 t/s (MTP-Annahme 66 %), 6641-Token-Prompt:
-        // Prefill 1471 tok/s, Decode 99 tok/s. Orchestrierungs-Bench 15/15,
-        // LiveCodeBench v6 84.57 %, GPQA-Diamond 88.89 %. VRAM 15059 MiB.
-        // Dense 27B; das Chat-Template setzt "Reasoning strength: high"
-        // selbst -> kleines max_tokens liefert leeren content (length) — Budget
-        // grosszuegig. 139264 = served KV (-c der Unit).
+        // Inkling-2-Mini SQ-15 via strata-inkling (5070 Ti allein, 131072 ctx,
+        // --kv fp8 --kv-offload on, --vram-experts-gb 10.3 --ram-experts-gb 2.0,
+        // DSpark + Vision). ~56 tok/s Decode, ~1352 tok/s Prefill bei 15.2 GiB VRAM.
         // limit.input ist Pflicht fuer den V1-Compaction-Trigger: ohne ihn
         // ignoriert opencode compaction.reserved und kompaktiert erst bei
         // context − output (T900362, siehe opencode.jsonc).
-        "Qwen3.8-27B": {
-          "name": "Qwen3.8-27B GSQ-RCO IQ2_S-mtp (llama.cpp :1919, RTX 5070 Ti, 139264 served KV, ~78 tok/s reasoning)",
+        "inkling-2-mini-sq-15": {
+          "name": "Inkling-2-Mini SQ-15 (Strata :1919, RTX 5070 Ti, single slot, 131072 ctx, Vision + DSpark)",
+          "reasoning": true,
+          "variants": {
+            "none": {},
+            "minimal": {},
+            "low": {},
+            "medium": {},
+            "high": {},
+            "xhigh": {},
+            "max": {}
+          },
           "limit": {
-            "context": 139264,
-            "input": 139264,
+            "context": 131072,
+            "input": 131072,
             "output": 8192
           }
         }
@@ -201,9 +201,9 @@
     // sequenzielle Dispatches, die ≤139264 served KV teilen. Der Orchestrator
     // vergibt pro Dispatch budget_tokens (S ~32k / M ~80k / L ~100k).
     "local": {
-      "description": "Higher-capability local implementation subagent (Qwen3.8-27B GSQ-RCO IQ2_S-mtp via llama.cpp :1919, RTX 5070 Ti, one slot; context limit 139264 shared across queued dispatches). Text-only. Sequential dispatch with per-packet budget_tokens.",
+      "description": "Higher-capability local implementation subagent (Inkling-2-Mini SQ-15 via Strata :1919, RTX 5070 Ti, one slot; context limit 131072 shared across queued dispatches, DSpark + Vision). Sequential dispatch with per-packet budget_tokens.",
       "mode": "subagent",
-      "model": "llamacpp-local/Qwen3.8-27B",
+      "model": "strata-local/inkling-2-mini-sq-15",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#34D399",
       "temperature": 0.4,
@@ -217,9 +217,9 @@
     // Genutzt von scripts/llm/plan-runner/workers.mjs. Der Direkt-Track des Runners braucht
     // keinen Agenten (In-Process-Tool-Loop gegen vLLM :8123, direct-worker.mjs).
     "plan-worker-self": {
-      "description": "plan-runner self-execution worker on the local Qwen3.8-27B IQ2_S-mtp (llama.cpp :1919, RTX 5070 Ti; not the Slim orchestrator model, which plans on Muse Spark via Go). Executes one plan partial in one go when all 4B slots are busy; started by scripts/llm/plan-runner.mjs.",
+      "description": "plan-runner self-execution worker on the local Inkling-2-Mini SQ-15 (Strata :1919, RTX 5070 Ti; not the Slim orchestrator model, which plans on Muse Spark via Go). Executes one plan partial in one go when all 4B slots are busy; started by scripts/llm/plan-runner.mjs.",
       "mode": "primary",
-      "model": "llamacpp-local/Qwen3.8-27B",
+      "model": "strata-local/inkling-2-mini-sq-15",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#34D399",
       "temperature": 0.4,
@@ -242,7 +242,7 @@
     "reviewer": {
       "description": "Reviewer role — read, grep, glob, tests only; no edit/write/bash/task dispatch (Orchestrator applies edits). Write-capable: deny.",
       "mode": "subagent",
-      "model": "llamacpp-local/Qwen3.8-27B",
+      "model": "strata-local/inkling-2-mini-sq-15",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#FBBF24",
       "temperature": 0.4,
@@ -276,9 +276,9 @@
     // sdlc-autopilot), big-pickle / ox-alpha-free (free-tier fallback is a
     // model choice, not a separate primary). plan-worker-* untouched.
     "bp-build": {
-      "description": "PRIMARY: build — manifests, Kustomize overlays, Taskfile, environments, sealed secrets. Tab-selectable domain entry over the OMO engine (local Qwen3.8-27B :1919).",
+      "description": "PRIMARY: build — manifests, Kustomize overlays, Taskfile, environments, sealed secrets. Tab-selectable domain entry over the OMO engine (local Inkling-2-Mini SQ-15 :1919).",
       "mode": "primary",
-      "model": "llamacpp-local/Qwen3.8-27B",
+      "model": "strata-local/inkling-2-mini-sq-15",
       "prompt": "{file:./prompts/bp-build.md}",
       "color": "#FB9236",
       "temperature": 0.3,
@@ -299,9 +299,9 @@
       }
     },
     "bp-run": {
-      "description": "PRIMARY: run — live cluster ops via task workspace:* and kubectl, postgres reads. Tab-selectable domain entry over the OMO engine (local Qwen3.8-27B :1919). Read-only filesystem for manifests.",
+      "description": "PRIMARY: run — live cluster ops via task workspace:* and kubectl, postgres reads. Tab-selectable domain entry over the OMO engine (local Inkling-2-Mini SQ-15 :1919). Read-only filesystem for manifests.",
       "mode": "primary",
-      "model": "llamacpp-local/Qwen3.8-27B",
+      "model": "strata-local/inkling-2-mini-sq-15",
       "prompt": "{file:./prompts/bp-run.md}",
       "color": "#F87171",
       "temperature": 0.3,

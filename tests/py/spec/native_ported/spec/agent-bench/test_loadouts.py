@@ -88,7 +88,7 @@ def test_production_orchestrator_is_restored_after_an_abort(run_cmd, repo_root, 
     bin_log = tmp_path / "bin.log"
     pool_path = tmp_path / "pool.json"
     pool = json.loads((fix / "pool.json").read_text())
-    pool["production_services"] = ["qwen38-gsq-iq3xxs.service"]
+    pool["production_services"] = ["inkling2-mini-strata.service"]
     pool_path.write_text(json.dumps(pool))
     bin_log.write_text("")
     real_curl = shutil.which("curl") or "/usr/bin/curl"
@@ -124,7 +124,7 @@ def test_production_orchestrator_is_restored_after_an_abort(run_cmd, repo_root, 
             proc.kill()
             proc.wait()
     log = bin_log.read_text()
-    assert "start qwen38-gsq-iq3xxs.service" in log
+    assert "start inkling2-mini-strata.service" in log
     assert "gpu-lock release" in log
 
 

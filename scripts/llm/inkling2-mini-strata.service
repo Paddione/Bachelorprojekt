@@ -1,5 +1,5 @@
 # systemd-User-Unit: Default Agent-Modell auf der RTX 5070 Ti (CUDA0, 16 GB), Strata :1919.
-# Inkling-2-Mini SQ-15 via strata-inkling + Vision + DSpark-Drafter,
+# Inkling-2-Mini SQ-10 via strata-inkling + Vision + DSpark-Drafter,
 # --parallel 1, --max-context 131072, --kv fp8 --kv-offload on (Single-Slot-Shape).
 #
 # Installation (Kopie, KEIN Symlink -- T900376):
@@ -7,7 +7,7 @@
 #   systemctl --user daemon-reload && systemctl --user enable --now inkling2-mini-strata
 
 [Unit]
-Description=strata serve Inkling-2-Mini SQ-15 + Vision + DSpark (RTX 5070 Ti, 131072 ctx, FP8 KV, single slot) auf :1919
+Description=strata serve Inkling-2-Mini SQ-10 + Vision + DSpark (RTX 5070 Ti, 131072 ctx, FP8 KV, single slot) auf :1919
 After=network.target
 
 [Service]

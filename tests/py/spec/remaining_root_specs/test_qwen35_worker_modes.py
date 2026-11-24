@@ -16,7 +16,7 @@ def test_worker_routes(repo_root):
         assert key not in cfg['agent']
     for key in ['llamacpp-qwen3', 'llamacpp-cpu-2b']:
         assert key not in cfg['provider']
-    assert cfg['agent']['local']['model'] == 'strata-local/inkling-2-mini-sq-15'
+    assert cfg['agent']['local']['model'] == 'strata-local/inkling-2-mini-sq-10'
     slim = json.loads(re.sub(r'^\s*//.*$', '', (repo_root / '.opencode/oh-my-opencode-slim.jsonc').read_text(), flags=re.M))
     for key in ['explorer', 'librarian']:
         assert slim['agents'][key]['model'] == 'vllm-local/w4a4'

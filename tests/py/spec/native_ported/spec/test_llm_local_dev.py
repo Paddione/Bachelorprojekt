@@ -22,8 +22,8 @@ const s = fs.readFileSync('__REPO__/.opencode/agent-models.jsonc','utf8');
 const j = s.replace(/^\s*\/\/.*$/gm,'').replace(/\/\*[\s\S]*?\*\//g,'');
 const o = JSON.parse(j);
 const m = ((o.provider || {})['strata-local'] || {}).models || {};
-const entry = m['inkling-2-mini-sq-15'];
-if (!entry) { console.error('inkling-2-mini-sq-15 fehlt im strata-local-Katalog'); process.exit(1); }
+const entry = m['inkling-2-mini-sq-10'];
+if (!entry) { console.error('inkling-2-mini-sq-10 fehlt im strata-local-Katalog'); process.exit(1); }
 const ctx = (entry.limit || {}).context;
 if (!Number.isInteger(ctx) || ctx <= 0) {
   console.error('ctx ' + ctx + ' ist keine positive ganze Zahl'); process.exit(1);
@@ -47,8 +47,8 @@ for (const [name, mode] of Object.entries(expect)) {
   const v = a[name];
   if (!v) { console.error(name + ' fehlt in agent-models.jsonc'); process.exit(1); }
   if (v.mode !== mode) { console.error(name + ' mode ' + v.mode + ' != ' + mode); process.exit(1); }
-  if (v.model !== 'strata-local/inkling-2-mini-sq-15') {
-    console.error(name + ' model ' + v.model + ' != strata-local/inkling-2-mini-sq-15'); process.exit(1);
+  if (v.model !== 'strata-local/inkling-2-mini-sq-10') {
+    console.error(name + ' model ' + v.model + ' != strata-local/inkling-2-mini-sq-10'); process.exit(1);
   }
 }
 process.exit(0);
@@ -63,8 +63,8 @@ const prim = (o.agent || {})['bp-build'];
 if (!prim) { console.error('bp-build fehlt'); process.exit(1); }
 if (prim.mode !== 'primary') { console.error('bp-build mode ' + prim.mode + ' != primary'); process.exit(1); }
 const model = prim.model;
-if (model !== 'strata-local/inkling-2-mini-sq-15') {
-  console.error('bp-build model ' + model + ' != strata-local/inkling-2-mini-sq-15'); process.exit(1);
+if (model !== 'strata-local/inkling-2-mini-sq-10') {
+  console.error('bp-build model ' + model + ' != strata-local/inkling-2-mini-sq-10'); process.exit(1);
 }
 const [prov, mid] = model.split('/');
 const entry = ((o.provider[prov] || {}).models || {})[mid];
@@ -96,8 +96,8 @@ NODE_DEAD_ENTRIES = r"""
 const j5 = require('json5');
 const d = j5.parse(require('fs').readFileSync('__REPO__/.opencode/agent-models.jsonc','utf8'));
 const m = ((d.provider || {})['strata-local'] || {}).models || {};
-if (!('inkling-2-mini-sq-15' in m)) {
-  console.error('positive anchor failed: inkling-2-mini-sq-15 fehlt im strata-local-Katalog'); process.exit(1);
+if (!('inkling-2-mini-sq-10' in m)) {
+  console.error('positive anchor failed: inkling-2-mini-sq-10 fehlt im strata-local-Katalog'); process.exit(1);
 }
 const dead = ['Qwen3.8-27B','Qwen3.8-27B-gsq','Qwen3.6-35B-A3B-NVFP4','qwen38-220k','gptoss-context','gemma26-factory','gemma4','gemma26-throughput','gemma12-vision','hauhau-qwen36']
   .filter(k => k in m);
@@ -107,7 +107,7 @@ process.exit(0);
 
 NODE_CONTEXT_VALUE = r"""
 const d = require('json5').parse(require('fs').readFileSync('__REPO__/.opencode/agent-models.jsonc','utf8'));
-const e = (((d.provider || {})['strata-local'] || {}).models || {})['inkling-2-mini-sq-15'];
+const e = (((d.provider || {})['strata-local'] || {}).models || {})['inkling-2-mini-sq-10'];
 console.log(e ? e.limit.context : 'missing');
 """
 

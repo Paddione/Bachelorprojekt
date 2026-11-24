@@ -3030,6 +3030,12 @@
     "kind": "pytest"
   },
   {
+    "id": "ci_cd_specs/e2e_runner_image_pin",
+    "file": "tests/py/spec/ci_cd_specs/test_e2e_runner_image_pin.py",
+    "category": "ci_cd_specs",
+    "kind": "pytest"
+  },
+  {
     "id": "ci_cd_specs/taskfile_registry_guards",
     "file": "tests/py/spec/ci_cd_specs/test_taskfile_registry_guards.py",
     "category": "ci_cd_specs",

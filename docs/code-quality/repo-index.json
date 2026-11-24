@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bp-ship",
-      "file_count": 1302,
+      "file_count": 1303,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -375,6 +375,7 @@
         "tests/py/spec/ci_cd_specs/test_commit_vs_diff_scope.py",
         "tests/py/spec/ci_cd_specs/test_devflow_execute_hardening_t002365.py",
         "tests/py/spec/ci_cd_specs/test_e2e_project_selection.py",
+        "tests/py/spec/ci_cd_specs/test_e2e_runner_image_pin.py",
         "tests/py/spec/ci_cd_specs/test_fetch_refspec_forced.py",
         "tests/py/spec/ci_cd_specs/test_freshness_check_base_mismatch.py",
         "tests/py/spec/ci_cd_specs/test_freshness_paths_exist.py",

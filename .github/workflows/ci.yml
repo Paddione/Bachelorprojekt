@@ -538,7 +538,9 @@ jobs:
     # tests/py/spec (pytest, geshardet) + setup-go fuer den mcp-task-runner-Build (von test:spec
     # gebraucht). Alle Spec-Tests ueberspringen Live-DB-Faelle ohne Cluster
     # (CI-safe). [T002182]
-    # Auf PRs auf die geaenderten Specs gescopt, volle Suite bei push-to-main. [T002245]
+    # Jeder Shard faehrt die volle Spec-Suite (kein Diff-Scoping — T002245 ist
+    # seit T901392 entfallen); die Shard-Zuweisung steht in
+    # tests/py/conftest.py (dauer-gewichtetes LPT ueber .spec-durations.json).
     name: Spec shard ${{ matrix.shard }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -552,6 +554,10 @@ jobs:
     env:
       SPEC_SHARD: ${{ matrix.shard }}
       SPEC_SHARDS: 4
+      # 4 xdist-Worker pro Shard: ubuntu-latest hat 4 vCPUs; der Default
+      # (nproc/2 = 2) liesse die Haelfte ungenutzt. IO-lastige Subprozess-Tests
+      # skalieren bis 4, repo_lock serialisiert feste Pfade. [T002500]
+      PYTEST_JOBS: 4
       MCP_SERVERS_HOME: ${{ github.workspace }}/ci-dotfiles/mcp-servers
       TOOLSET_HOME: ${{ github.workspace }}/scripts/toolset
     steps:
@@ -658,10 +664,12 @@ jobs:
           task cockpit:daemon PORT="${COCKPIT_DAEMON_PORT}"
 
       # [T901392] Spec-Module (tests/py/spec) geshardet ueber SPEC_SHARD/SPEC_SHARDS
-      # (LPT-Bin-Packing in tests/py/conftest.py). Pytest faehrt die volle Spec-Suite
-      # pro Shard in wenigen Minuten, daher entfaellt die BATS-Diff-Auswahl
-      # (find-changed-tests.sh) samt Merge-Delta-Pfad. Der Tracked-File-Guard
-      # [T002779] bleibt als nicht-fataler Befund.
+      # (dauer-gewichtetes LPT-Bin-Packing in tests/py/conftest.py, Gewichte aus
+      # tests/py/.spec-durations.json, Refresh via scripts/spec-shard-weights.py).
+      # Pytest faehrt die volle Spec-Suite pro Shard in wenigen Minuten, daher
+      # entfaellt die BATS-Diff-Auswahl (find-changed-tests.sh) samt
+      # Merge-Delta-Pfad. Der Tracked-File-Guard [T002779] bleibt als
+      # nicht-fataler Befund.
       - name: Spec pytest suite (shard ${{ matrix.shard }}/4)
         env:
           # Macht das Gate fail-closed: ein nicht erreichbarer Daemon laesst die

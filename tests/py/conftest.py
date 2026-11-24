@@ -30,6 +30,37 @@ def pytest_configure(config):
 collect_ignore = [] if os.environ.get("PYTEST_LOCAL") == "1" else ["local"]
 
 
+def _spec_module_weights(module_items, _durations_path=None):
+    """Return per-module weights in seconds for LPT bin-packing.
+
+    Reads ``tests/py/.spec-durations.json`` (``{"version": 1,
+    "per_test_s": <float>, "modules": {<module>: <seconds>}}``) when present.
+    Known modules use their measured seconds; unknown modules fall back to
+    ``len(items) * per_test_s``. A missing/unreadable file degrades gracefully
+    to pure test-count weights so a stale file never fails collection.
+    """
+    durations_path = (_durations_path if _durations_path is not None
+                      else Path(__file__).resolve().parent / ".spec-durations.json")
+    per_test_s = 1.0
+    measured = {}
+    try:
+        import json
+
+        data = json.loads(durations_path.read_text(encoding="utf-8"))
+        if isinstance(data, dict):
+            per_test_s = float(data.get("per_test_s", 1.0) or 1.0)
+            modules = data.get("modules", {})
+            if isinstance(modules, dict):
+                measured = {str(k): float(v) for k, v in modules.items()
+                            if isinstance(v, (int, float)) and float(v) >= 0}
+    except (OSError, ValueError):
+        measured = {}
+    weights = {}
+    for mod, mod_items in module_items.items():
+        weights[mod] = measured.get(mod, len(mod_items) * per_test_s)
+    return weights
+
+
 def pytest_collection_modifyitems(config, items):
     """Keep only this shard's modules when SPEC_SHARD/SPEC_SHARDS are set (CI matrix)."""
     shard, shards = getattr(config, "_spec_shard", (0, 1))
@@ -43,13 +74,15 @@ def pytest_collection_modifyitems(config, items):
         module_items[module].append(item)
 
     # Deterministic greedy LPT bin-packing: heaviest module first, alphabetical tie-break.
-    # Distributes both heavy modules and test counts evenly across all shards.
-    sorted_modules = sorted(module_items.items(), key=lambda x: (-len(x[1]), x[0]))
-    shard_weights = [0] * shards
+    # Weights are measured seconds from tests/py/.spec-durations.json (fallback: test
+    # counts), so shards balance wall-clock time instead of raw test counts.
+    weights = _spec_module_weights(module_items)
+    sorted_modules = sorted(module_items.items(), key=lambda x: (-weights[x[0]], x[0]))
+    shard_weights = [0.0] * shards
     shard_assignment = {}
     for mod, mod_items in sorted_modules:
         best_shard = min(range(shards), key=lambda i: (shard_weights[i], i))
-        shard_weights[best_shard] += len(mod_items)
+        shard_weights[best_shard] += weights[mod]
         shard_assignment[mod] = best_shard
 
     target_shard = shard - 1

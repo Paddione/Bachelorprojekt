@@ -1,7 +1,21 @@
 """Tests for spec sharding logic in tests/py/conftest.py."""
 
+import importlib.util
+import json
+from pathlib import Path
 from unittest.mock import Mock
-from tests.py.conftest import pytest_collection_modifyitems
+
+# conftest.py per Dateipfad laden (T002448-M4: Verhalten pruefen, kein Source-Grep).
+# Ein Paket-Import (`from tests.py.conftest import ...`) haengt davon ab, ob das
+# Repo-Root auf sys.path liegt — in CI (uv run) ja, lokal nein. Der Pfad-Import
+# funktioniert in beiden Umgebungen identisch.
+_CONFTEXT = Path(__file__).resolve().parents[1] / "conftest.py"
+_spec = importlib.util.spec_from_file_location("spec_conftest", _CONFTEXT)
+assert _spec is not None and _spec.loader is not None
+_mod = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_mod)
+_spec_module_weights = _mod._spec_module_weights
+pytest_collection_modifyitems = _mod.pytest_collection_modifyitems
 
 
 class DummyItem:
@@ -95,3 +109,38 @@ def test_sharding_balances_weights_using_lpt():
     # All shards should receive between 3 and 4 tests (difference <= 1)
     assert max(counts) - min(counts) <= 1
     assert sum(counts) == len(raw_items)
+
+
+def test_duration_weights_override_test_counts(tmp_path):
+    # A module with few tests but high measured seconds must sort before a
+    # module with many fast tests. Output-verified via _spec_module_weights,
+    # not via source grep (T002448-M4).
+    weights_file = tmp_path / "durations.json"
+    weights_file.write_text(json.dumps({
+        "version": 1,
+        "per_test_s": 1.0,
+        "modules": {"spec/slow.py": 100.0},
+    }))
+    module_items = {
+        "spec/slow.py": [DummyItem("spec/slow.py::test_0")],
+        "spec/fast.py": [DummyItem(f"spec/fast.py::test_{i}") for i in range(10)],
+    }
+    weights = _spec_module_weights(module_items, _durations_path=weights_file)
+    assert weights["spec/slow.py"] == 100.0
+    # Unknown module falls back to count * per_test_s.
+    assert weights["spec/fast.py"] == 10.0
+
+
+def test_missing_durations_file_falls_back_to_counts(tmp_path):
+    module_items = {"spec/a.py": [DummyItem("spec/a.py::test_0")] * 3}
+    weights = _spec_module_weights(
+        module_items, _durations_path=tmp_path / "does-not-exist.json")
+    assert weights == {"spec/a.py": 3.0}
+
+
+def test_invalid_durations_file_falls_back_to_counts(tmp_path):
+    bad = tmp_path / "bad.json"
+    bad.write_text("{not json")
+    module_items = {"spec/a.py": [DummyItem("spec/a.py::test_0")] * 2}
+    weights = _spec_module_weights(module_items, _durations_path=bad)
+    assert weights == {"spec/a.py": 2.0}

@@ -21,8 +21,8 @@ def test_t900203_llamacpp_local_catalog_holds_exactly_the_single_static_model(pa
     script = (
         "const d = require('json5').parse(require('fs').readFileSync('" + str(paths["models"]) + "','utf8'));\n"
         "const m = ((d.provider || {})['strata-local'] || {}).models || {};\n"
-        "if (!('inkling-2-mini-sq-15' in m)) {\n"
-        "  console.error('positive anchor failed: inkling-2-mini-sq-15 fehlt im strata-local-Katalog'); process.exit(1);\n"
+        "if (!('inkling-2-mini-sq-10' in m)) {\n"
+        "  console.error('positive anchor failed: inkling-2-mini-sq-10 fehlt im strata-local-Katalog'); process.exit(1);\n"
         "}\n"
         "const keys = Object.keys(m);\n"
         "if (keys.length !== 1) {\n"

@@ -71,7 +71,7 @@ def test_opencode_agent_model_drift_t002545_die_agentendefinitionen_nennen_kein_
 
 def test_opencode_agent_model_drift_t002545_die_agentendefinitionen_verweisen_auf_qwen3_8_27b(repo_root):
     text = (repo_root / ".opencode/agent-models.jsonc").read_text(encoding="utf-8")
-    assert sum(1 for l in text.splitlines() if "strata-local/inkling-2-mini-sq-15" in l) > 0
+    assert sum(1 for l in text.splitlines() if "strata-local/inkling-2-mini-sq-10" in l) > 0
 
 
 def test_opencode_agent_model_drift_t002545_keine_llamacpp_local_kontextzahl_widerspricht_der_served_kv(run_cmd, repo_root):

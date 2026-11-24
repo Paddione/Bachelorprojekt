@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // plan-runner.mjs — fuehrt die Partials eines gestagten Plans mit lokalen Modellen aus (T900504).
 //
-// Der Orchestrator (Strata :1919, Inkling-2-Mini SQ-15; faellt auf vLLM :8123 w4a4 zurueck, wenn
+// Der Orchestrator (Strata :1919, Inkling-2-Mini SQ-10; faellt auf vLLM :8123 w4a4 zurueck, wenn
 // :1919 nicht antwortet) steuert per Tool-Loop. Partials laufen auf drei Tracks (Rangfolge direct, cloud, self):
 //  - direct: In-Process-Tool-Loop gegen vLLM :8123 (w4a4, plan-runner/direct-worker.mjs), ohne opencode,
 //  - cloud:  `opencode run --agent plan-worker-muse` (Muse Spark 1.3 im Go-Abo),

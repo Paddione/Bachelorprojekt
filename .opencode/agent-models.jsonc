@@ -2,7 +2,7 @@
   "provider": {
     // Lokaler Provider auf :1919 [T900208, T900348, T900359, T900365].
     //
-    // Seit dem Cutover steht dahinter Strata (:1919): Inkling-2-Mini SQ-15 +
+    // Seit dem Cutover steht dahinter Strata (:1919): Inkling-2-Mini SQ-10 +
     // Vision + DSpark-Drafter, 131072 max-context, FP8-KV + Host-KV-Offload
     // (--vram-experts-gb 10.3 --ram-experts-gb 2.0) auf der RTX 5070 Ti allein
     // (scripts/llm/inkling2-mini-strata.service).
@@ -13,21 +13,21 @@
     // eine explizite Agenten-Wahl.
     "strata-local": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "Strata :1919 (Inkling-2-Mini SQ-15, RTX 5070 Ti, single slot, 131072 ctx)",
+      "name": "Strata :1919 (Inkling-2-Mini SQ-10, RTX 5070 Ti, single slot, 131072 ctx)",
       "options": {
         "baseURL": "http://127.0.0.1:1919/v1",
         "timeout": 1800000,
         "chunkTimeout": 900000
       },
       "models": {
-        // Inkling-2-Mini SQ-15 via strata-inkling (5070 Ti allein, 131072 ctx,
+        // Inkling-2-Mini SQ-10 via strata-inkling (5070 Ti allein, 131072 ctx,
         // --kv fp8 --kv-offload on, --vram-experts-gb 10.3 --ram-experts-gb 2.0,
         // DSpark + Vision). ~56 tok/s Decode, ~1352 tok/s Prefill bei 15.2 GiB VRAM.
         // limit.input ist Pflicht fuer den V1-Compaction-Trigger: ohne ihn
         // ignoriert opencode compaction.reserved und kompaktiert erst bei
         // context − output (T900362, siehe opencode.jsonc).
-        "inkling-2-mini-sq-15": {
-          "name": "Inkling-2-Mini SQ-15 (Strata :1919, RTX 5070 Ti, single slot, 131072 ctx, Vision + DSpark)",
+        "inkling-2-mini-sq-10": {
+          "name": "Inkling-2-Mini SQ-10 (Strata :1919, RTX 5070 Ti, single slot, 131072 ctx, Vision + DSpark)",
           "reasoning": true,
           "variants": {
             "none": {},
@@ -201,9 +201,9 @@
     // sequenzielle Dispatches, die ≤139264 served KV teilen. Der Orchestrator
     // vergibt pro Dispatch budget_tokens (S ~32k / M ~80k / L ~100k).
     "local": {
-      "description": "Higher-capability local implementation subagent (Inkling-2-Mini SQ-15 via Strata :1919, RTX 5070 Ti, one slot; context limit 131072 shared across queued dispatches, DSpark + Vision). Sequential dispatch with per-packet budget_tokens.",
+      "description": "Higher-capability local implementation subagent (Inkling-2-Mini SQ-10 via Strata :1919, RTX 5070 Ti, one slot; context limit 131072 shared across queued dispatches, DSpark + Vision). Sequential dispatch with per-packet budget_tokens.",
       "mode": "subagent",
-      "model": "strata-local/inkling-2-mini-sq-15",
+      "model": "strata-local/inkling-2-mini-sq-10",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#34D399",
       "temperature": 0.4,
@@ -217,9 +217,9 @@
     // Genutzt von scripts/llm/plan-runner/workers.mjs. Der Direkt-Track des Runners braucht
     // keinen Agenten (In-Process-Tool-Loop gegen vLLM :8123, direct-worker.mjs).
     "plan-worker-self": {
-      "description": "plan-runner self-execution worker on the local Inkling-2-Mini SQ-15 (Strata :1919, RTX 5070 Ti; not the Slim orchestrator model, which plans on Muse Spark via Go). Executes one plan partial in one go when all 4B slots are busy; started by scripts/llm/plan-runner.mjs.",
+      "description": "plan-runner self-execution worker on the local Inkling-2-Mini SQ-10 (Strata :1919, RTX 5070 Ti; not the Slim orchestrator model, which plans on Muse Spark via Go). Executes one plan partial in one go when all 4B slots are busy; started by scripts/llm/plan-runner.mjs.",
       "mode": "primary",
-      "model": "strata-local/inkling-2-mini-sq-15",
+      "model": "strata-local/inkling-2-mini-sq-10",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#34D399",
       "temperature": 0.4,
@@ -242,7 +242,7 @@
     "reviewer": {
       "description": "Reviewer role — read, grep, glob, tests only; no edit/write/bash/task dispatch (Orchestrator applies edits). Write-capable: deny.",
       "mode": "subagent",
-      "model": "strata-local/inkling-2-mini-sq-15",
+      "model": "strata-local/inkling-2-mini-sq-10",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#FBBF24",
       "temperature": 0.4,
@@ -276,9 +276,9 @@
     // sdlc-autopilot), big-pickle / ox-alpha-free (free-tier fallback is a
     // model choice, not a separate primary). plan-worker-* untouched.
     "bp-build": {
-      "description": "PRIMARY: build — manifests, Kustomize overlays, Taskfile, environments, sealed secrets. Tab-selectable domain entry over the OMO engine (local Inkling-2-Mini SQ-15 :1919).",
+      "description": "PRIMARY: build — manifests, Kustomize overlays, Taskfile, environments, sealed secrets. Tab-selectable domain entry over the OMO engine (local Inkling-2-Mini SQ-10 :1919).",
       "mode": "primary",
-      "model": "strata-local/inkling-2-mini-sq-15",
+      "model": "strata-local/inkling-2-mini-sq-10",
       "prompt": "{file:./prompts/bp-build.md}",
       "color": "#FB9236",
       "temperature": 0.3,
@@ -299,9 +299,9 @@
       }
     },
     "bp-run": {
-      "description": "PRIMARY: run — live cluster ops via task workspace:* and kubectl, postgres reads. Tab-selectable domain entry over the OMO engine (local Inkling-2-Mini SQ-15 :1919). Read-only filesystem for manifests.",
+      "description": "PRIMARY: run — live cluster ops via task workspace:* and kubectl, postgres reads. Tab-selectable domain entry over the OMO engine (local Inkling-2-Mini SQ-10 :1919). Read-only filesystem for manifests.",
       "mode": "primary",
-      "model": "strata-local/inkling-2-mini-sq-15",
+      "model": "strata-local/inkling-2-mini-sq-10",
       "prompt": "{file:./prompts/bp-run.md}",
       "color": "#F87171",
       "temperature": 0.3,

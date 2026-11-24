@@ -244,7 +244,7 @@ def test_req_vim_ai_009_effective_defaults_target_loopback_8094_qwen38_220k_512_
     _run_vim(run_cmd, repo_root, env, case)
     lines = _result(result_file)
     assert "endpoint=http://127.0.0.1:8094/infill" in lines
-    assert "model=inkling-2-mini-sq-15" in lines
+    assert "model=inkling-2-mini-sq-10" in lines
     assert "prefix=512" in lines
     assert "suffix=64" in lines
     assert "ring=32" in lines

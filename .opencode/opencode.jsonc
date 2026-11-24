@@ -1,12 +1,12 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  // Default = strata-local/inkling-2-mini-sq-15: Inkling-2-Mini SQ-15 via
+  // Default = strata-local/inkling-2-mini-sq-10: Inkling-2-Mini SQ-10 via
   // Strata :1919 direkt, DSpark-Drafter + Vision auf der RTX 5070 Ti allein,
   // 131072 max-context (systemd-User-Unit scripts/llm/inkling2-mini-strata.service).
   //
   // Fallback bei Ausfall des lokalen Servers: Eskalation an exe-muse
   // (Muse Spark via OpenCode Go; T900751: DeepSeek-Schiene entfernt).
-  "model": "strata-local/inkling-2-mini-sq-15",
+  "model": "strata-local/inkling-2-mini-sq-10",
   // ── Compaction (Requirement: Compaction Scales With the Model Window) ──────
   // opencode 1.18 liest die V2-Keys und bildet sie fuer die V1-Promptschleife
   // ab (`opencode debug config`: buffer → reserved, keep.tokens →
@@ -14,7 +14,7 @@
   // TUI-Primaries UND jeder Subagent-Dispatch (task-Tool) laufen, rechnet:
   //   limit.input gesetzt:  threshold = limit.input − reserved
   //   limit.input fehlt:    threshold = limit.context − limit.output  (reserved ignoriert!)
-  //   Inkling-2-Mini SQ-15 (input 131072): 131072 − 33600 = 97472
+  //   Inkling-2-Mini SQ-10 (input 131072): 131072 − 33600 = 97472
   //   Cloud-Modelle ohne input:       1M − output (≈991k/868k), DCP haelt sie schlank
   // Bis T900362 fehlte limit.input im Katalog: der damalige Qwen-Trigger lag
   // deshalb bei 153600 − 8192 = 145408, und Subagents liefen bis ~150k.
@@ -24,7 +24,7 @@
   //
   // Kalibrierung: buffer 33600 stammt aus T900350 (153600-Fenster, Trigger
   // 120k) und bleibt: er reserviert 33,6k fuer Output und Reasoning, unabhaengig
-  // vom Fenster. Unter Inkling-2-Mini SQ-15 feuert die Compaction damit bei 97472;
+  // vom Fenster. Unter Inkling-2-Mini SQ-10 feuert die Compaction damit bei 97472;
   // keep.tokens 16000 haelt den Tail.
   "compaction": {
     "auto": true,

@@ -3,7 +3,7 @@ set -euo pipefail
 
 # === Config ===
 MAX_ITERATIONS=2
-MODEL="${PLAN_QA_MODEL:-inkling-2-mini-sq-15}"
+MODEL="${PLAN_QA_MODEL:-inkling-2-mini-sq-10}"
 GATEWAY_BASE_URL="${GATEWAY_BASE_URL:-http://127.0.0.1:18235}"
 
 # === Helpers ===

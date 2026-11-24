@@ -47,7 +47,14 @@ env:
 jobs:
   playwright:
     name: ${{ matrix.cluster }}
-    runs-on: ubuntu-latest
+    # [2026-11-24] Pin auf ubuntu-24.04 (noble, ICU 74): `ubuntu-latest` liefert
+    # neuere Runner-Images, deren apt-Bestand kein libicudata.so.74 mehr enthaelt.
+    # WebKit (Playwright 1.64, webkit-2370) startet dann nicht
+    # ("MiniBrowser: libicudata.so.74: cannot open shared object file") und alle
+    # [ios]-Specs sind rot (8 chronische Failures seit 16.11.2026). `install-deps`
+    # installiert immer, bindet aber an das laufende Image — daher der Pin statt
+    # ubuntu-latest. Anheben nur mit verifiziertem WebKit-Smoke-Test.
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     strategy:
       fail-fast: false

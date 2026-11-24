@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bp-ship",
-      "file_count": 1301,
+      "file_count": 1302,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -328,6 +328,7 @@
         "tests/prod/SA-01.sh",
         "tests/prod/SA-07.sh",
         "tests/prod/SA-08.sh",
+        "tests/py/.spec-durations.json",
         "tests/py/conftest.py",
         "tests/py/evals/test_main_commit_guard.py",
         "tests/py/evals/test_routing_docs_guard.py",
@@ -3763,7 +3764,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bp-build",
-      "file_count": 904,
+      "file_count": 905,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4580,6 +4581,7 @@
         "scripts/setup.sh",
         "scripts/skill-orchestrator.sh",
         "scripts/skills-check.mjs",
+        "scripts/spec-shard-weights.py",
         "scripts/spec-tracked-file-guard.sh",
         "scripts/staging-db-anonymize.sh",
         "scripts/start-comfyui.sh",

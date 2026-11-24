@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.455.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.455.1...website-v1.455.2) (2026-11-24)
+
+
+### Bug Fixes
+
+* **test:** pin nightly runner to ubuntu-24.04 for WebKit ICU 74 ([#7338](https://github.com/Paddione/Bachelorprojekt/issues/7338)) ([600970e](https://github.com/Paddione/Bachelorprojekt/commit/600970e7cd43d207c1337992ca39f54cc8206ed8))
+
 ## [1.455.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.455.0...website-v1.455.1) (2026-11-14)
 
 

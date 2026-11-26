@@ -115,10 +115,10 @@ Fachspezifische Skills, die als Subagent dispatched werden:
 
 | Skill | When to use |
 |---|---|
-| [`website-specialist`](website-specialist/SKILL.md) | Astro/Svelte frontend development, component creation, page routing, content management, UI implementation. Dispatched as subagent via `bachelorprojekt-website`. |
-| [`security-specialist`](security-specialist/SKILL.md) | SealedSecrets lifecycle, Pocket ID OIDC client config, OIDC setup, DSGVO compliance, credential management. Dispatched as subagent via `bachelorprojekt-security`. |
-| [`database-specialist`](database-specialist/SKILL.md) | PostgreSQL schema migrations, data queries, backup/restore, index optimization, performance tuning. Dispatched as subagent via `bachelorprojekt-db`. |
-| [`web-audit`](web-audit/SKILL.md) | Semantische Prüfung und Triage der Brand-Seiten — kombiniert `a11y:axe` und Lighthouse mit einer LLM-Beurteilung (alt-Texte, Meta-Tags, Überschriften, Link-Labels) zu einer priorisierten Rangliste. **Kein Merge-Gate**, läuft manuell. Dispatched as subagent via `bachelorprojekt-website`. |
+| [`website-specialist`](website-specialist/SKILL.md) | Astro/Svelte frontend development, component creation, page routing, content management, UI implementation. Dispatched as subagent via `bp-ship`. |
+| [`security-specialist`](security-specialist/SKILL.md) | SealedSecrets lifecycle, Pocket ID OIDC client config, OIDC setup, DSGVO compliance, credential management. Dispatched as subagent via `bp-build`. |
+| [`database-specialist`](database-specialist/SKILL.md) | PostgreSQL schema migrations, data queries, backup/restore, index optimization, performance tuning. Dispatched as subagent via `bp-run`. |
+| [`web-audit`](web-audit/SKILL.md) | Semantische Prüfung und Triage der Brand-Seiten — kombiniert `a11y:axe` und Lighthouse mit einer LLM-Beurteilung (alt-Texte, Meta-Tags, Überschriften, Link-Labels) zu einer priorisierten Rangliste. **Kein Merge-Gate**, läuft manuell. Dispatched as subagent via `bp-ship`. |
 
 ---
 

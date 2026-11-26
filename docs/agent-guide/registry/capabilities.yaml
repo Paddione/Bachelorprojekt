@@ -396,6 +396,14 @@ capabilities:
       roles: [all]
       tier: safe
 
+  codebase-memory:
+    skill:codebase-memory:
+      state: canonical
+      use_when: "Repository-Codegraphen bauen, aktualisieren, exportieren, einbetten, validieren und navigieren (K3-SSOT)."
+      roles: [all]
+      tier: safe
+      deep_ref: ".claude/skills/codebase-memory/SKILL.md"
+
   embedding-rerank:
     mcp:bge-mcp:
       state: canonical
@@ -949,6 +957,19 @@ capabilities:
       roles: [all]
       tier: caution
       deep_ref: ".agents/skills/bachelorprojekt-vim/SKILL.md"
+
+  zentraler-mcp-hub:
+    mcp:fleet-workspace:
+      state: canonical
+      use_when: "Zentraler MCP-Single-Hub (fleet-workspace) für Code-Graph, Embeddings, Postgres, Kubernetes, Devflow, Playwright und Studio."
+      roles: [all]
+      tier: caution
+      deep_ref: ".agents/skills/references/mcp-tool-guide.md"
+
+  unity-sandbox:
+    mcp:unity-sandbox:
+      state: suppressed
+      reason: "Unity-Sandbox-MCP gehört zum separaten Repo ~/unity-sandbox, kein Einsatz im Bachelorprojekt."
 
 harnesses:
   claude:

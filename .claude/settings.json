@@ -63,7 +63,8 @@
   "disabledMcpjsonServers": [
     "mcp-task-runner",
     "playwright",
-    "task-master-ai"
+    "task-master-ai",
+    "unity-sandbox"
   ],
   "hooks": {
     "PreToolUse": [

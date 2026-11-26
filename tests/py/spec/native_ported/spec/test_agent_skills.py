@@ -208,3 +208,27 @@ def test_t002305_registry_runtimes_md_covers_every_registry_runtime_t900560_c1b(
     rows = re.findall(r"^\| `([a-z0-9-]+)`", _read(repo_root / "docs/agent-guide/registry/runtimes.md"), re.MULTILINE)
     missing = [r for r in runtimes if r not in rows]
     assert not missing, "\n".join(f"runtimes.md Runtime-Tabelle fehlt: {r}" for r in missing)
+
+
+def test_overview_md_all_relative_links_resolve_and_no_legacy_roles(repo_root):
+    overview = repo_root / ".opencode/skills/OVERVIEW.md"
+    text = _read(overview)
+    skip_prefixes = ("http://", "https://", "mailto:")
+    broken = []
+    for raw in re.findall(r"\[[^\]]+\]\(([^)\s]+)\)", text):
+        if raw.startswith(skip_prefixes):
+            continue
+        target = raw.split("#", 1)[0]
+        if not target:
+            continue
+        if not (overview.parent / target).exists():
+            broken.append(raw)
+    assert not broken, f"OVERVIEW.md defekte relative Links: {broken}"
+
+    roles = set(_registry_keys(repo_root, "roles"))
+    skill_dirs = {p.name for p in overview.parent.iterdir() if p.is_dir()}
+    unknown_roles = [
+        r for r in sorted(set(re.findall(r"bachelorprojekt-[a-z]+", text)))
+        if r not in roles and r not in skill_dirs
+    ]
+    assert not unknown_roles, f"OVERVIEW.md nennt unbekannte Legacy-Rollen: {unknown_roles}"

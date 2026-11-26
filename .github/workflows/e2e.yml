@@ -134,6 +134,20 @@ jobs:
         working-directory: tests/e2e
         run: npx playwright install chromium webkit
 
+      # Fail-fast WebKit-Launch-Probe (G-E2E01, 16.-23.11.2026): Der
+      # `webkitInstalled`-Check in tests/e2e/playwright.config.ts prueft nur die
+      # Binaer-Existenz — bei Runner-Image-Drift (fehlendes libicudata.so.74)
+      # startet WebKit trotzdem nicht und alle [ios]-Specs laufen ~13 Minuten
+      # ins Launch-ROT (8 chronische Failures, DEPLOY_DRIFT-unabhaengig).
+      # Diese Probe startet WebKit einmal headless: schlaegt das fehl, faellt
+      # der Job sofort mit klarer Meldung statt 8 kryptischer [ios]-Failures.
+      # Anheben des ubuntu-24.04-Pins nur mit Gruen dieser Probe als Beleg.
+      - name: Smoke-test WebKit launch (fail fast on runner-image drift)
+        if: steps.gate.outputs.skip != 'true'
+        working-directory: tests/e2e
+        run: |
+          node -e "const {webkit}=require('@playwright/test');(async()=>{const b=await webkit.launch();await b.close();console.log('webkit launch ok')})().catch(e=>{console.error('webkit launch FAILED (runner-image drift?):',String(e.message).split('\n')[0]);process.exit(1)})"
+
       # T013329 F5/D4: Fleet-Kubeconfig für den Matrix-Job (der frühere eigene
       # sso-e2e-Job ist hier aufgegangen, T013329 Task 5.4). Ohne kubectl kann
       # lib/oidc.ts kein One-Time-Access-Token erzeugen; Setups markieren sich

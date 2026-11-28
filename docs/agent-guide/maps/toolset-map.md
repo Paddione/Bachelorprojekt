@@ -370,6 +370,8 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Grund:_ Doppelt den chrome-devtools-Pfad und die Playwright-CLI.
 - **`plugin:superpowers-chrome@superpowers-marketplace`** — Status `suppressed`
   - _Grund:_ Read-only-Browser-Agent; chrome-devtools-mcp deckt den Bedarf vollständig ab.
+- **`mcp:browse`** — Status `suppressed`
+  - _Grund:_ Steuert den persönlichen Browser des Eigners (Takeover); Agenten-Bedarf deckt chrome-devtools-mcp, E2E die Playwright-CLI.
 
 ## Fähigkeit: `lsp-symbol-lookup`
 

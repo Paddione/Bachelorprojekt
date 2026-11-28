@@ -478,6 +478,9 @@ capabilities:
     plugin:superpowers-chrome@superpowers-marketplace:
       state: suppressed
       reason: "Read-only-Browser-Agent; chrome-devtools-mcp deckt den Bedarf vollständig ab."
+    mcp:browse:
+      state: suppressed
+      reason: "Steuert den persönlichen Browser des Eigners (Takeover); Agenten-Bedarf deckt chrome-devtools-mcp, E2E die Playwright-CLI."
 
   # ─── Sprachwerkzeuge ────────────────────────────────────────────────────────────────
   lsp-symbol-lookup:

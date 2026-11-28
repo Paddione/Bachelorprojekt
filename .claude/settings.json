@@ -62,6 +62,7 @@
   },
   "disabledMcpjsonServers": [
     "blender",
+    "board-mcp",
     "browse",
     "mcp-task-runner",
     "playwright",

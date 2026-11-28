@@ -979,6 +979,11 @@ capabilities:
       state: suppressed
       reason: "Live-Blender-Steuerung (Desktop) gehört zu Unity-/3D-Arbeit (unity-sandbox, Home-Skripte); GPU-Host-Pipeline läuft über scripts/."
 
+  agent-board:
+    mcp:board-mcp:
+      state: suppressed
+      reason: "Freigabe-Queue braucht den Menschen; Agenten genehmigen keine eigenen Aktionen und treiben die Queue nicht."
+
 harnesses:
   claude:
     job: "Planung und Risikoarbeit: dev-flow-plan, Infra, Security, Cluster-Mutation"

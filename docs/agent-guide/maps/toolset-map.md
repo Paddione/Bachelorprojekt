@@ -802,6 +802,11 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 - **`mcp:blender`** — Status `suppressed`
   - _Grund:_ Live-Blender-Steuerung (Desktop) gehört zu Unity-/3D-Arbeit (unity-sandbox, Home-Skripte); GPU-Host-Pipeline läuft über scripts/.
 
+## Fähigkeit: `agent-board`
+
+- **`mcp:board-mcp`** — Status `suppressed`
+  - _Grund:_ Freigabe-Queue braucht den Menschen; Agenten genehmigen keine eigenen Aktionen und treiben die Queue nicht.
+
 ## Residuale Mehrdeutigkeiten
 
 Keine — jede Instanz ist kuriert, und jede unterdrückte Instanz ist technisch durchsetzbar.

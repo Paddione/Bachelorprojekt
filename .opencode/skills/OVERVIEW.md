@@ -20,7 +20,7 @@ Each skill's `SKILL.md` frontmatter carries an optional `agent:` field that tell
 
 - Skills with `agent:` → dispatched as a subagent via [`task`](https://github.com/Paddione/Bachelorprojekt/search?q=task&type=code) with `subagent_type: "general"` (isolated context window, own domain knowledge).
 - Skills without `agent:` → loaded inline in the main session (workflow/orchestrator skills that span multiple agents or hold state).
-- New skill: pick an agent from the routing table, add `agent: bachelorprojekt-<role>` to frontmatter, add a row to the AGENTS.md table.
+- New skill: pick an agent from the routing table, add `agent: bp-<role>` to frontmatter, add a row to the AGENTS.md table.
 
 ---
 
@@ -34,7 +34,7 @@ Each skill's `SKILL.md` frontmatter carries an optional `agent:` field that tell
 | [`dev-flow-e2e`](dev-flow-e2e/SKILL.md) | After [`dev-flow-execute`](dev-flow-execute/SKILL.md) has merged and deployed — specialized test-only Chore writing + running Playwright E2E tests against live environment. |
 | ~~`sdlc-autopilot`~~ | Retiriert 2026-10-14 mit dem Ticket-System (Queue-Quelle `tickets.*` entfiel). |
 
-> **SSOT (T900070):** `.opencode/skills/` ist die Single Source of Truth — alle Skills unten liegen hier kanonisch. `.claude/skills/*` und `.agents/skills/*` sind echte Spiegel mit pro-Harness-Projektion (Registry: `docs/agent-guide/registry/skills.yaml`, Engine: `scripts/agent-skills/project.mjs --check`). Nur `opencode-git-workflow` war schon immer opencode-eigen (`sdlc-autopilot` retiriert 2026-10-14).
+> **Repo-Einstieg (T900070):** Die Quell-SSOT liegt in `~/agentic-resources` (s. o.); `.opencode/skills/` ist der repo-lokale Symlink-Einstieg und wird auf `.claude/skills/*` und `.agents/skills` projiziert (Registry: `docs/agent-guide/registry/skills.yaml`, Engine: `scripts/agent-skills/project.mjs --check`). `sdlc-autopilot` wurde 2026-10-14 retiriert.
 
 ---
 
@@ -77,7 +77,7 @@ und `task plugins:sync` behebt ihn — kein stilles Wegfallen.
 | `dev-flow-execute` Schritt 3 | verification-before-completion | Claude Code — built-in |
 | `dev-flow-execute` Schritt 3.8 | requesting-code-review (optional, nur auf Zuruf) | Claude Code — built-in |
 
-> **Worktrees:** `scripts/worktree-create.sh` (git-crypt-safe) übernimmt Worktree-Isolation im dev-flow-Pfad. Hintergrund: [dev-flow-gotchas#T001974](.opencode/skills/references/dev-flow-gotchas.md#t001974) (Detached-HEAD-Falle, git-crypt exit 128).
+> **Worktrees:** `scripts/worktree-create.sh` (git-crypt-safe) übernimmt Worktree-Isolation im dev-flow-Pfad. Hintergrund: [dev-flow-gotchas#T001974](references/dev-flow-gotchas.md#t001974) (Detached-HEAD-Falle, git-crypt exit 128).
 
 ### Verifikations-Leiter (wer prüft was — kein doppeltes Gate)
 
@@ -115,10 +115,10 @@ Fachspezifische Skills, die als Subagent dispatched werden:
 
 | Skill | When to use |
 |---|---|
-| [`website-specialist`](website-specialist/SKILL.md) | Astro/Svelte frontend development, component creation, page routing, content management, UI implementation. Dispatched as subagent via `bachelorprojekt-website`. |
-| [`security-specialist`](security-specialist/SKILL.md) | SealedSecrets lifecycle, Pocket ID OIDC client config, OIDC setup, DSGVO compliance, credential management. Dispatched as subagent via `bachelorprojekt-security`. |
-| [`database-specialist`](database-specialist/SKILL.md) | PostgreSQL schema migrations, data queries, backup/restore, index optimization, performance tuning. Dispatched as subagent via `bachelorprojekt-db`. |
-| [`web-audit`](web-audit/SKILL.md) | Semantische Prüfung und Triage der Brand-Seiten — kombiniert `a11y:axe` und Lighthouse mit einer LLM-Beurteilung (alt-Texte, Meta-Tags, Überschriften, Link-Labels) zu einer priorisierten Rangliste. **Kein Merge-Gate**, läuft manuell. Dispatched as subagent via `bachelorprojekt-website`. |
+| [`website-specialist`](website-specialist/SKILL.md) | Astro/Svelte frontend development, component creation, page routing, content management, UI implementation. Dispatched as subagent via `bp-ship`. |
+| [`security-specialist`](security-specialist/SKILL.md) | SealedSecrets lifecycle, Pocket ID OIDC client config, OIDC setup, DSGVO compliance, credential management. Dispatched as subagent via `bp-build`. |
+| [`database-specialist`](database-specialist/SKILL.md) | PostgreSQL schema migrations, data queries, backup/restore, index optimization, performance tuning. Dispatched as subagent via `bp-run`. |
+| [`web-audit`](web-audit/SKILL.md) | Semantische Prüfung und Triage der Brand-Seiten — kombiniert `a11y:axe` und Lighthouse mit einer LLM-Beurteilung (alt-Texte, Meta-Tags, Überschriften, Link-Labels) zu einer priorisierten Rangliste. **Kein Merge-Gate**, läuft manuell. Dispatched as subagent via `bp-ship`. |
 
 ---
 

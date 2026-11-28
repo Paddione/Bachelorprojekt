@@ -298,6 +298,13 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ K3-Codegraph lesen oder erklären, Call-Chain und Change-Impact aus Graphkanten prüfen, Graphbefund gegen Quellcode verifizieren.
   - _Rollen:_ `all`
 
+## Fähigkeit: `codebase-memory`
+
+- **`skill:codebase-memory`** — Status `canonical` · Tier `safe`
+  - _Wann:_ Repository-Codegraphen bauen, aktualisieren, exportieren, einbetten, validieren und navigieren (K3-SSOT).
+  - _Rollen:_ `all`
+  - _Tiefe:_ `.claude/skills/codebase-memory/SKILL.md`
+
 ## Fähigkeit: `embedding-rerank`
 
 - **`mcp:bge-mcp`** — Status `canonical` · Tier `safe`
@@ -775,6 +782,18 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Neue oder bestehende Neovim-Konfiguration fuer dieses Repository planen, erstellen oder warten.
   - _Rollen:_ `all`
   - _Tiefe:_ `.agents/skills/bachelorprojekt-vim/SKILL.md`
+
+## Fähigkeit: `zentraler-mcp-hub`
+
+- **`mcp:fleet-workspace`** — Status `canonical` · Tier `caution`
+  - _Wann:_ Zentraler MCP-Single-Hub (fleet-workspace) für Code-Graph, Embeddings, Postgres, Kubernetes, Devflow, Playwright und Studio.
+  - _Rollen:_ `all`
+  - _Tiefe:_ `.agents/skills/references/mcp-tool-guide.md`
+
+## Fähigkeit: `unity-sandbox`
+
+- **`mcp:unity-sandbox`** — Status `suppressed`
+  - _Grund:_ Unity-Sandbox-MCP gehört zum separaten Repo ~/unity-sandbox, kein Einsatz im Bachelorprojekt.
 
 ## Residuale Mehrdeutigkeiten
 

@@ -3024,6 +3024,12 @@
     "kind": "pytest"
   },
   {
+    "id": "ci_cd_specs/ci_queue_guard",
+    "file": "tests/py/spec/ci_cd_specs/test_ci_queue_guard.py",
+    "category": "ci_cd_specs",
+    "kind": "pytest"
+  },
+  {
     "id": "ci_cd_specs/commit_vs_diff_scope",
     "file": "tests/py/spec/ci_cd_specs/test_commit_vs_diff_scope.py",
     "category": "ci_cd_specs",

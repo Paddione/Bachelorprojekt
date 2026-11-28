@@ -44,6 +44,12 @@ on:
   # workflow_dispatch mit HTTP 422 abwies. Der Trigger aendert nichts am Normalbetrieb.
   workflow_dispatch:
 
+# [schedule-queue-guard] Der Nightly-schedule (cron oben) teilt sich die
+# Runner-Queue mit PR-Laufen. Schedule-Runs duerfen nie gecancelt werden
+# (sie tragen die Spec-Vollabdeckung, T002780); cancel-in-progress gilt
+# daher nur fuer pull_request-Events. Queue-Stall-Referenz: Run 45996916608
+# (Shard 4 queue 1158.7min bei 2.27min Laufzeit) — kein timeout-minutes
+# deckt Queue ab. Shard-4-Fail-Retry: gh run rerun --failed-only <run-id>.
 concurrency:
   # Cancel superseded runs on the same PR (rapid iteration / stacked pushes);
   # never cancel push-to-main runs, which gate the deployable history.

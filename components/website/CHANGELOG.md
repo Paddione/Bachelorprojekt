@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.455.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.455.2...website-v1.455.3) (2026-11-28)
+
+
+### CI/CD
+
+* **ci:** schedule queue guard in ci workflow ([#7360](https://github.com/Paddione/Bachelorprojekt/issues/7360)) ([90f1b2d](https://github.com/Paddione/Bachelorprojekt/commit/90f1b2d2291b1aa488dd5efa7dd231080365a435))
+
 ## [1.455.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.455.1...website-v1.455.2) (2026-11-24)
 
 

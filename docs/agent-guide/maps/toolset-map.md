@@ -795,6 +795,11 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 - **`mcp:unity-sandbox`** — Status `suppressed`
   - _Grund:_ Unity-Sandbox-MCP gehört zum separaten Repo ~/unity-sandbox, kein Einsatz im Bachelorprojekt.
 
+## Fähigkeit: `blender-steuerung`
+
+- **`mcp:blender`** — Status `suppressed`
+  - _Grund:_ Live-Blender-Steuerung (Desktop) gehört zu Unity-/3D-Arbeit (unity-sandbox, Home-Skripte); GPU-Host-Pipeline läuft über scripts/.
+
 ## Residuale Mehrdeutigkeiten
 
 Keine — jede Instanz ist kuriert, und jede unterdrückte Instanz ist technisch durchsetzbar.

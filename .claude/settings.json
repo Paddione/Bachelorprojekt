@@ -61,6 +61,7 @@
     ]
   },
   "disabledMcpjsonServers": [
+    "blender",
     "mcp-task-runner",
     "playwright",
     "task-master-ai",

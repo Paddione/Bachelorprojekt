@@ -971,6 +971,11 @@ capabilities:
       state: suppressed
       reason: "Unity-Sandbox-MCP gehört zum separaten Repo ~/unity-sandbox, kein Einsatz im Bachelorprojekt."
 
+  blender-steuerung:
+    mcp:blender:
+      state: suppressed
+      reason: "Live-Blender-Steuerung (Desktop) gehört zu Unity-/3D-Arbeit (unity-sandbox, Home-Skripte); GPU-Host-Pipeline läuft über scripts/."
+
 harnesses:
   claude:
     job: "Planung und Risikoarbeit: dev-flow-plan, Infra, Security, Cluster-Mutation"

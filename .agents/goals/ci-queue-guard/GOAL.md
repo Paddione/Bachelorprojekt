@@ -19,3 +19,4 @@ CI-Queue-Latenz auf main begrenzen: p95 der Wall-Clock-Dauer der letzten 20 ci.y
 - Kein E2E (keine Playwright-/Brand-Umgebungen).
 ## Abhängigkeiten
 - Keine; bzw. G-CI03 (CI Pipeline p95 Duration).
+- plan_refs: [.agents/plans/ci-queue-guard/tasks.md]
